@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "policykg-guardrails"
+version = "0.1.0"
+description = "Policy-KG guardrails prototype for ABAC decision support"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "Policy-KG Prototype" }
+]
+dependencies = [
+  "networkx>=3.3",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2",
+]
+llm = [
+  "torch>=2.2",
+  "transformers>=4.44",
+  "accelerate>=0.33",
+  "bitsandbytes>=0.43; platform_system != 'Darwin'",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
