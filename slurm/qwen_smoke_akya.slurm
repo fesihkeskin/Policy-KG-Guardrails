@@ -66,6 +66,30 @@ echo "Output File: ${OUTPUT_FILE}"
 echo "Model ID: ${MODEL_ID}"
 echo "Max Tokens: ${MAX_TOKENS}"
 
+MODEL_CACHE_ROOT="${HF_HOME}/hub/models--${MODEL_ID//\//--}"
+if [[ -d "${MODEL_CACHE_ROOT}" ]]; then
+  MODEL_SNAPSHOT_COUNT=0
+  if [[ -d "${MODEL_CACHE_ROOT}/snapshots" ]]; then
+    MODEL_SNAPSHOT_COUNT=$(find "${MODEL_CACHE_ROOT}/snapshots" -mindepth 1 -maxdepth 1 -type d | wc -l)
+  fi
+  echo "[CACHE] Model cache found for ${MODEL_ID}: ${MODEL_CACHE_ROOT} (snapshots: ${MODEL_SNAPSHOT_COUNT})"
+else
+  echo "[CACHE] Model cache NOT found for ${MODEL_ID} under ${HF_HOME}/hub (first run may download)."
+fi
+
+if [[ -d "${HF_DATASETS_CACHE}" ]]; then
+  DATASET_CACHE_ITEMS=$(find "${HF_DATASETS_CACHE}" -mindepth 1 -maxdepth 1 | wc -l)
+  if [[ "${DATASET_CACHE_ITEMS}" -gt 0 ]]; then
+    echo "[CACHE] Dataset cache contains ${DATASET_CACHE_ITEMS} top-level entries at ${HF_DATASETS_CACHE}."
+  else
+    echo "[CACHE] Dataset cache directory exists but is currently empty: ${HF_DATASETS_CACHE}."
+  fi
+else
+  echo "[CACHE] Dataset cache directory does not exist yet: ${HF_DATASETS_CACHE}."
+fi
+
+echo "[CACHE] Hugging Face will reuse local snapshots automatically when available and skip re-download behavior."
+
 if [[ ! -d "${PROJECT_DIR}" ]]; then
   echo "Error: PROJECT_DIR does not exist: ${PROJECT_DIR}"
   exit 1
