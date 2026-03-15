@@ -4,7 +4,7 @@
 #SBATCH -J policykg-run-all
 #SBATCH -N 1
 #SBATCH -n 1
-#SBATCH --cpus-per-task=24
+#SBATCH --cpus-per-task=10
 #SBATCH --mem=96G
 #SBATCH --gres=gpu:1
 #SBATCH --time=24:00:00

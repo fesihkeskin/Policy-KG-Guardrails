@@ -1,0 +1,71 @@
+Policy-KG-Guardrails/
+# Root of the project
+├── examples/
+│    
+│   ├── healthcare.abac
+│   └── healthcare_README.md
+├── logs/
+│    
+│   ├── qwen_smoke_5389983.err
+│   └── qwen_smoke_5389983.out
+├── outputs/
+│    
+│   ├── predictions_kg-rag.jsonl
+│   ├── predictions_policy-kg-guardrails.jsonl
+│   ├── predictions_text-rag.jsonl
+│   ├── predictions_vanilla.jsonl
+│   ├── qwen_smoke_20260315_1242_5389983.jsonl
+│   └── tables.md
+├── references/
+│    
+│   ├── clis.md
+│   ├── create_project_structure.py
+│   └── project_structure.txt
+├── scripts/
+│    
+│   ├── check_results.py
+│   ├── push_to_github.sh
+│   ├── qwen_smoke_test.py
+│   └── run_experiments.py
+├── slurm/
+│    
+│   ├── qwen_smoke_akya.slurm
+│   ├── qwen_smoke_debug.slurm
+│   ├── run_all_policy_kg.slurm
+│   └── warm_cache_policy_kg.slurm
+├── src/
+│    
+│   ├── policykg/
+│   │    
+│   │   ├── __init__.py
+│   │   ├── evaluator.py
+│   │   ├── experiments.py
+│   │   ├── guardrails.py
+│   │   ├── kg.py
+│   │   ├── llm.py
+│   │   ├── metrics.py
+│   │   ├── parser.py
+│   │   ├── response_contract.py
+│   │   ├── retrieval.py
+│   │   ├── tasks.py
+│   │   ├── types.py
+│   │   ├── utils.py
+│   │   ├── validator.py
+│   │   └── variants.py
+│   └── policykg_guardrails.egg-info/
+│        
+│       ├── PKG-INFO
+│       ├── SOURCES.txt
+│       ├── dependency_links.txt
+│       ├── requires.txt
+│       └── top_level.txt
+├── tests/
+│    
+│   ├── test_evaluator.py
+│   ├── test_experiments.py
+│   ├── test_guardrails.py
+│   ├── test_parser_compiler.py
+│   └── test_validator_negative.py
+├── Qwen3_5_9B.ipynb
+├── README.md
+└── pyproject.toml

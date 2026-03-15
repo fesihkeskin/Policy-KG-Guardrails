@@ -119,3 +119,5 @@ python scripts/qwen_smoke_test.py \
 echo "Warm-cache complete."
 echo "Results saved at: ${OUTPUT_FILE}"
 echo "Job Finished: $(date)"
+
+# usage for qwen 3.5 smoke test with policy-kg guardrails:
