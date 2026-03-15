@@ -16,7 +16,7 @@ from policykg.llm import HFLocalCausalLMClient
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Qwen smoke test via local HF backend")
-    parser.add_argument("--model-id", required=True, help="HF model id (e.g., Qwen/Qwen2.5-7B-Instruct)")
+    parser.add_argument("--model-id", default="Qwen/Qwen3.5-9B", help="HF model id")
     parser.add_argument("--output", default="outputs/qwen_smoke.jsonl", help="Output jsonl path")
     parser.add_argument("--temperature", type=float, default=0.1)
     parser.add_argument("--top-p", type=float, default=0.9)

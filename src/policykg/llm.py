@@ -104,7 +104,7 @@ class HFLocalCausalLMClient:
     Local Hugging Face causal LM backend (Qwen-compatible).
 
     Recommended for 16GB VRAM:
-    - `model_id=\"Qwen/Qwen2.5-7B-Instruct\"`
+    - `model_id=\"Qwen/Qwen3.5-9B\"`
     - `load_in_4bit=True`
     """
 
@@ -114,6 +114,8 @@ class HFLocalCausalLMClient:
     trust_remote_code: bool = False
     _tokenizer: Any = field(init=False, repr=False)
     _model: Any = field(init=False, repr=False)
+    _processor: Any = field(init=False, repr=False, default=None)
+    _backend: str = field(init=False, repr=False, default="causal")
     _torch: Any = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
@@ -154,10 +156,35 @@ class HFLocalCausalLMClient:
         else:
             model_kwargs["torch_dtype"] = torch.float16
 
-        self._model = AutoModelForCausalLM.from_pretrained(
-            self.model_id,
-            **model_kwargs,
-        )
+        try:
+            self._model = AutoModelForCausalLM.from_pretrained(
+                self.model_id,
+                **model_kwargs,
+            )
+            self._backend = "causal"
+        except Exception:
+            # Some Qwen 3.5 checkpoints are exposed as image-text models.
+            # Fallback keeps text-only prompting operational for smoke tests.
+            try:
+                from transformers import AutoModelForImageTextToText, AutoProcessor
+            except Exception as exc:  # pragma: no cover - optional dependency path
+                raise RuntimeError(
+                    "Could not load model via AutoModelForCausalLM and fallback "
+                    "AutoModelForImageTextToText is unavailable."
+                ) from exc
+
+            self._processor = AutoProcessor.from_pretrained(
+                self.model_id,
+                trust_remote_code=self.trust_remote_code,
+            )
+            if hasattr(self._processor, "tokenizer"):
+                self._tokenizer = self._processor.tokenizer
+            self._model = AutoModelForImageTextToText.from_pretrained(
+                self.model_id,
+                **model_kwargs,
+            )
+            self._backend = "image_text"
+
         self._model.eval()
 
     def _build_prompt(self, system_prompt: str, user_prompt: str) -> Any:
@@ -166,16 +193,41 @@ class HFLocalCausalLMClient:
             {"role": "user", "content": user_prompt},
         ]
 
+        if self._backend == "image_text" and self._processor is not None:
+            if hasattr(self._processor, "apply_chat_template"):
+                chat_text = self._processor.apply_chat_template(
+                    messages,
+                    add_generation_prompt=True,
+                    tokenize=False,
+                )
+            elif hasattr(self._tokenizer, "apply_chat_template"):
+                chat_text = self._tokenizer.apply_chat_template(
+                    messages,
+                    add_generation_prompt=True,
+                    tokenize=False,
+                )
+            else:
+                chat_text = f"System: {system_prompt}\nUser: {user_prompt}\nAssistant:"
+            return self._processor(text=[chat_text], return_tensors="pt")
+
         if hasattr(self._tokenizer, "apply_chat_template"):
-            return self._tokenizer.apply_chat_template(
+            return {"input_ids": self._tokenizer.apply_chat_template(
                 messages,
                 add_generation_prompt=True,
                 return_tensors="pt",
-            )
+            )}
 
         # Fallback for tokenizers without chat template support.
         text = f"System: {system_prompt}\nUser: {user_prompt}\nAssistant:"
-        return self._tokenizer(text, return_tensors="pt")["input_ids"]
+        return self._tokenizer(text, return_tensors="pt")
+
+    def _model_device(self) -> Any:
+        try:
+            return next(self._model.parameters()).device
+        except Exception:
+            if self._torch.cuda.is_available():
+                return self._torch.device("cuda")
+            return self._torch.device("cpu")
 
     def generate(
         self,
@@ -186,21 +238,31 @@ class HFLocalCausalLMClient:
         top_p: float = 0.9,
         max_tokens: int = 800,
     ) -> str:
-        input_ids = self._build_prompt(system_prompt, user_prompt)
-        model_device = next(self._model.parameters()).device
-        input_ids = input_ids.to(model_device)
+        model_inputs = self._build_prompt(system_prompt, user_prompt)
+        model_device = self._model_device()
+
+        for key, value in list(model_inputs.items()):
+            if hasattr(value, "to"):
+                model_inputs[key] = value.to(model_device)
 
         do_sample = temperature > 0.0
+        eos_token_id = getattr(self._tokenizer, "eos_token_id", None)
+        pad_token_id = eos_token_id
+
         with self._torch.no_grad():
             output_ids = self._model.generate(
-                input_ids,
+                **model_inputs,
                 max_new_tokens=max_tokens,
                 do_sample=do_sample,
                 temperature=temperature if do_sample else 1.0,
                 top_p=top_p if do_sample else 1.0,
-                eos_token_id=self._tokenizer.eos_token_id,
-                pad_token_id=self._tokenizer.eos_token_id,
+                eos_token_id=eos_token_id,
+                pad_token_id=pad_token_id,
             )
 
-        generated = output_ids[0, input_ids.shape[-1] :]
+        input_len = model_inputs["input_ids"].shape[-1]
+        generated = output_ids[0, input_len:]
+
+        if self._backend == "image_text" and self._processor is not None and hasattr(self._processor, "batch_decode"):
+            return self._processor.batch_decode(generated.unsqueeze(0), skip_special_tokens=True)[0].strip()
         return self._tokenizer.decode(generated, skip_special_tokens=True).strip()

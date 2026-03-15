@@ -1,0 +1,7 @@
+{"task_id": "WHY664", "variant": "policy-kg-guardrails", "oracle": "Deny", "prediction": "Deny", "citations": ["SG1"], "decisive_rules": [], "unsupported_claim_count": 1}
+{"task_id": "QA99", "variant": "policy-kg-guardrails", "oracle": "Deny", "prediction": "Deny", "citations": ["SG1"], "decisive_rules": [], "unsupported_claim_count": 1}
+{"task_id": "WHY1942", "variant": "policy-kg-guardrails", "oracle": "Deny", "prediction": "Deny", "citations": ["SG1"], "decisive_rules": [], "unsupported_claim_count": 1}
+{"task_id": "QA309", "variant": "policy-kg-guardrails", "oracle": "Deny", "prediction": "Deny", "citations": ["SG1"], "decisive_rules": [], "unsupported_claim_count": 1}
+{"task_id": "WHY1682", "variant": "policy-kg-guardrails", "oracle": "Deny", "prediction": "Deny", "citations": ["SG1"], "decisive_rules": [], "unsupported_claim_count": 1}
+{"task_id": "QA809", "variant": "policy-kg-guardrails", "oracle": "Deny", "prediction": "Deny", "citations": ["SG1"], "decisive_rules": [], "unsupported_claim_count": 1}
+{"task_id": "WHY1334", "variant": "policy-kg-guardrails", "oracle": "Deny", "prediction": "Deny", "citations": ["SG1"], "decisive_rules": [], "unsupported_claim_count": 1}

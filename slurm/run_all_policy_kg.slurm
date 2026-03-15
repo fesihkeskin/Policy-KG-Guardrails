@@ -57,14 +57,15 @@ export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 export MKL_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 
-# Set to your Qwen model id.
-export MODEL_ID="${MODEL_ID:-Qwen/Qwen2.5-7B-Instruct}"
-export MAX_SMOKE_TOKENS="${MAX_SMOKE_TOKENS:-128}"
+# Qwen 3.5 9B default tuned for 16GB VRAM (4-bit quantization in Python client).
+export MODEL_ID="${MODEL_ID:-Qwen/Qwen3.5-9B}"
+export MAX_SMOKE_TOKENS="${MAX_SMOKE_TOKENS:-96}"
 export MAX_PHASE1="${MAX_PHASE1:-400}"
 export MAX_PHASE2="${MAX_PHASE2:-120}"
-export TEMP="${TEMP:-0.2}"
+export TEMP="${TEMP:-0.1}"
 export TOP_P="${TOP_P:-0.9}"
-export MAX_TOKENS="${MAX_TOKENS:-900}"
+export MAX_TOKENS="${MAX_TOKENS:-384}"
+export TRUST_REMOTE_CODE="${TRUST_REMOTE_CODE:-1}"
 export POLICY_FILE="${POLICY_FILE:-examples/healthcare.abac}"
 export README_FILE="${README_FILE:-examples/healthcare_README.md}"
 
@@ -94,6 +95,7 @@ echo "Phase2 Limit: ${MAX_PHASE2}"
 echo "Temperature: ${TEMP}"
 echo "Top-p: ${TOP_P}"
 echo "Max Tokens: ${MAX_TOKENS}"
+echo "Trust Remote Code: ${TRUST_REMOTE_CODE}"
 
 if [[ ! -d "${PROJECT_DIR}" ]]; then
   echo "Error: PROJECT_DIR does not exist: ${PROJECT_DIR}"
@@ -147,13 +149,21 @@ fi
 echo "Visible CUDA devices: ${CUDA_VISIBLE_DEVICES:-N/A}"
 nvidia-smi -L || true
 
+TRC_ARG=()
+if [[ "${TRUST_REMOTE_CODE}" == "1" ]]; then
+  TRC_ARG+=(--trust-remote-code)
+fi
+
 # -------------------------
 # 0) Qwen smoke test
 # -------------------------
 python scripts/qwen_smoke_test.py \
   --model-id "${MODEL_ID}" \
   --output "${OUT_DIR}/qwen_smoke.jsonl" \
-  --max-tokens "${MAX_SMOKE_TOKENS}"
+  --max-tokens "${MAX_SMOKE_TOKENS}" \
+  --temperature "${TEMP}" \
+  --top-p "${TOP_P}" \
+  "${TRC_ARG[@]}"
 
 # -------------------------
 # 1) Main experiments
@@ -168,7 +178,8 @@ python scripts/run_experiments.py \
   --max-phase2 "${MAX_PHASE2}" \
   --temperature "${TEMP}" \
   --top-p "${TOP_P}" \
-  --max-tokens "${MAX_TOKENS}"
+  --max-tokens "${MAX_TOKENS}" \
+  "${TRC_ARG[@]}"
 
 # -------------------------
 # 2) Verify outputs

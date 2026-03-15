@@ -6,9 +6,9 @@
 #SBATCH -e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/qwen_smoke_debug_%j.err
 #SBATCH -N 1
 #SBATCH -n 1
-#SBATCH --cpus-per-task=20        # Multiple cores (for barbun x20) for FAISS and data processing (Parallel CPU)
-#SBATCH --mem=32G                 # Sufficient RAM for 8B Model + Dataset
-#SBATCH --gres=gpu:1             # 1 GPU for Qwen 3.5 9B Instruct
+#SBATCH --cpus-per-task=20
+#SBATCH --mem=32G
+#SBATCH --gres=gpu:1
 #SBATCH --time=00:20:00            # Duration for test (Max 1h for debug)
 
 set -euo pipefail
@@ -53,8 +53,11 @@ export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 export MKL_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 
-export MODEL_ID="${MODEL_ID:-Qwen/Qwen2.5-7B-Instruct}"
-export MAX_TOKENS="${MAX_TOKENS:-128}"
+export MODEL_ID="${MODEL_ID:-Qwen/Qwen3.5-9B}"
+export MAX_TOKENS="${MAX_TOKENS:-96}"
+export TEMP="${TEMP:-0.1}"
+export TOP_P="${TOP_P:-0.9}"
+export TRUST_REMOTE_CODE="${TRUST_REMOTE_CODE:-1}"
 export DATE_TAG="$(date +%Y%m%d_%H%M)"
 export OUTPUT_FILE="${PROJECT_DIR}/outputs/qwen_smoke_${DATE_TAG}_${SLURM_JOB_ID:-manual}.jsonl"
 
@@ -65,6 +68,8 @@ echo "HF Cache: ${HF_HOME}"
 echo "Output File: ${OUTPUT_FILE}"
 echo "Model ID: ${MODEL_ID}"
 echo "Max Tokens: ${MAX_TOKENS}"
+echo "Temperature: ${TEMP}"
+echo "Top-p: ${TOP_P}"
 
 if [[ ! -d "${PROJECT_DIR}" ]]; then
   echo "Error: PROJECT_DIR does not exist: ${PROJECT_DIR}"
@@ -95,10 +100,18 @@ fi
 echo "Visible CUDA devices: ${CUDA_VISIBLE_DEVICES:-N/A}"
 nvidia-smi -L || true
 
+TRC_ARG=()
+if [[ "${TRUST_REMOTE_CODE}" == "1" ]]; then
+  TRC_ARG+=(--trust-remote-code)
+fi
+
 python scripts/qwen_smoke_test.py \
   --model-id "${MODEL_ID}" \
   --output "${OUTPUT_FILE}" \
-  --max-tokens "${MAX_TOKENS}"
+  --max-tokens "${MAX_TOKENS}" \
+  --temperature "${TEMP}" \
+  --top-p "${TOP_P}" \
+  "${TRC_ARG[@]}"
 
 echo "Qwen smoke test completed successfully."
 echo "Results saved at: ${OUTPUT_FILE}"

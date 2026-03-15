@@ -1,0 +1,7 @@
+{"task_id": "WHY664", "variant": "kg-rag", "oracle": "Deny", "prediction": "Permit", "citations": ["SG1"], "decisive_rules": ["R1"], "unsupported_claim_count": 1}
+{"task_id": "QA99", "variant": "kg-rag", "oracle": "Deny", "prediction": "Permit", "citations": ["SG1"], "decisive_rules": ["R1"], "unsupported_claim_count": 1}
+{"task_id": "WHY1942", "variant": "kg-rag", "oracle": "Deny", "prediction": "Permit", "citations": ["SG1"], "decisive_rules": ["R1"], "unsupported_claim_count": 1}
+{"task_id": "QA309", "variant": "kg-rag", "oracle": "Deny", "prediction": "Permit", "citations": ["SG1"], "decisive_rules": ["R1"], "unsupported_claim_count": 1}
+{"task_id": "WHY1682", "variant": "kg-rag", "oracle": "Deny", "prediction": "Permit", "citations": ["SG1"], "decisive_rules": ["R1"], "unsupported_claim_count": 1}
+{"task_id": "QA809", "variant": "kg-rag", "oracle": "Deny", "prediction": "Permit", "citations": ["SG1"], "decisive_rules": ["R1"], "unsupported_claim_count": 1}
+{"task_id": "WHY1334", "variant": "kg-rag", "oracle": "Deny", "prediction": "Permit", "citations": ["SG1"], "decisive_rules": ["R1"], "unsupported_claim_count": 1}

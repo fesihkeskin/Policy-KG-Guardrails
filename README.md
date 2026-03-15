@@ -47,21 +47,23 @@ python3 scripts/run_experiments.py \
   --readme examples/healthcare_README.md \
   --output-dir outputs_qwen \
   --llm-backend hf-local \
-  --model-id Qwen/Qwen2.5-7B-Instruct
+  --model-id Qwen/Qwen3.5-9B \
+  --temperature 0.1 \
+  --max-tokens 384 \
+  --trust-remote-code
 ```
 
 ## TRUBA / SLURM
 
 SLURM templates are in `slurm/`:
 
-- `slurm/warm_cache.slurm`: download/cache model and run a minimal generation check.
-- `slurm/qwen_smoke.slurm`: run prompt smoke test only (`scripts/qwen_smoke_test.py`).
-- `slurm/run_all.slurm`: smoke test + full experiment run + artifact validation (`scripts/check_results.py`).
+- `slurm/warm_cache_policy_kg.slurm`: warm model/cache and run minimal generation check.
+- `slurm/qwen_smoke_debug.slurm`: quick smoke test for Qwen responses.
+- `slurm/run_all_policy_kg.slurm`: smoke test + full experiment run + artifact validation (`scripts/check_results.py`).
 
 Run examples:
 
 ```bash
-sbatch --export=ALL,MODEL_ID=Qwen/Qwen2.5-7B-Instruct slurm/warm_cache.slurm
-sbatch --export=ALL,MODEL_ID=Qwen/Qwen2.5-7B-Instruct slurm/qwen_smoke.slurm
-sbatch --export=ALL,MODEL_ID=Qwen/Qwen2.5-7B-Instruct,MAX_PHASE1=400,MAX_PHASE2=120 slurm/run_all.slurm
+sbatch --export=ALL,MODEL_ID=Qwen/Qwen3.5-9B,TRUST_REMOTE_CODE=1 slurm/qwen_smoke_debug.slurm
+sbatch --export=ALL,MODEL_ID=Qwen/Qwen3.5-9B,TRUST_REMOTE_CODE=1,MAX_PHASE1=400,MAX_PHASE2=120,MAX_TOKENS=384 slurm/run_all_policy_kg.slurm
 ```
