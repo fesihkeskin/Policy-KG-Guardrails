@@ -1,0 +1,124 @@
+Job Started: Sun Mar 15 12:42:24 PM +03 2026
+Host: akya4
+Job ID: 5389983
+=== SLURM SETTINGS ===
+Job Partition: akya-cuda
+Job Account: fekeskin
+Job Name: policykg-qwen-smoke
+Job User: fekeskin
+Submit Dir: /arf/scratch/fekeskin/Policy-KG-Guardrails
+Nodes Requested (NNODES): 1
+Node List: akya4
+NTASKS: 1
+NTASKS per node: N/A
+CPUs per task: 10
+CPUs on node: 10
+Memory per node: 131072
+Memory per CPU: N/A
+GRES (GPUs): 2
+GRES on node: 1
+Time limit: N/A
+QOS: normal
+Constraint: N/A
+=== ENV SUMMARY ===
+PWD: /arf/scratch/fekeskin/Policy-KG-Guardrails
+PATH: /arf/home/fekeskin/.vscode-server/data/User/globalStorage/github.copilot-chat/debugCommand:/arf/home/fekeskin/.vscode-server/data/User/globalStorage/github.copilot-chat/copilotCli:/arf/home/fekeskin/.vscode-server/cli/servers/Stable-ce099c1ed25d9eb3076c11e4a280f3eb52b4fbeb/server/bin/remote-cli:/arf/home/fekeskin/miniconda3/bin:/arf/home/fekeskin/miniconda3/condabin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/arf/home/fekeskin/.vscode-server/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/scripts/noConfigScripts
+Python (pre-conda): /arf/home/fekeskin/miniconda3/bin/python
+======================
+Project Dir: /arf/scratch/fekeskin/Policy-KG-Guardrails
+HF Cache: /arf/scratch/fekeskin/hf_cache
+Output File: /arf/scratch/fekeskin/Policy-KG-Guardrails/outputs/qwen_smoke_20260315_1242_5389983.jsonl
+Model ID: Qwen/Qwen2.5-7B-Instruct
+Max Tokens: 128
+Obtaining file:///arf/scratch/fekeskin/Policy-KG-Guardrails
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Requirement already satisfied: networkx>=3.3 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from policykg-guardrails==0.1.0) (3.6.1)
+Collecting pytest>=8.2 (from policykg-guardrails==0.1.0)
+  Using cached pytest-9.0.2-py3-none-any.whl.metadata (7.6 kB)
+Requirement already satisfied: torch>=2.2 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from policykg-guardrails==0.1.0) (2.10.0+cu126)
+Requirement already satisfied: transformers>=4.44 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from policykg-guardrails==0.1.0) (4.57.6)
+Requirement already satisfied: accelerate>=0.33 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from policykg-guardrails==0.1.0) (1.12.0)
+Requirement already satisfied: bitsandbytes>=0.43 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from policykg-guardrails==0.1.0) (0.49.1)
+Requirement already satisfied: numpy>=1.17 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from accelerate>=0.33->policykg-guardrails==0.1.0) (2.4.1)
+Requirement already satisfied: packaging>=20.0 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from accelerate>=0.33->policykg-guardrails==0.1.0) (25.0)
+Requirement already satisfied: psutil in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from accelerate>=0.33->policykg-guardrails==0.1.0) (7.2.1)
+Requirement already satisfied: pyyaml in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from accelerate>=0.33->policykg-guardrails==0.1.0) (6.0.3)
+Requirement already satisfied: huggingface_hub>=0.21.0 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from accelerate>=0.33->policykg-guardrails==0.1.0) (0.36.0)
+Requirement already satisfied: safetensors>=0.4.3 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from accelerate>=0.33->policykg-guardrails==0.1.0) (0.7.0)
+Requirement already satisfied: filelock in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (3.20.0)
+Requirement already satisfied: typing-extensions>=4.10.0 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (4.15.0)
+Requirement already satisfied: sympy>=1.13.3 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (1.14.0)
+Requirement already satisfied: jinja2 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (3.1.6)
+Requirement already satisfied: fsspec>=0.8.5 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (2025.10.0)
+Requirement already satisfied: cuda-bindings==12.9.4 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (12.9.4)
+Requirement already satisfied: nvidia-cuda-nvrtc-cu12==12.6.77 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (12.6.77)
+Requirement already satisfied: nvidia-cuda-runtime-cu12==12.6.77 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (12.6.77)
+Requirement already satisfied: nvidia-cuda-cupti-cu12==12.6.80 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (12.6.80)
+Requirement already satisfied: nvidia-cudnn-cu12==9.10.2.21 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (9.10.2.21)
+Requirement already satisfied: nvidia-cublas-cu12==12.6.4.1 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (12.6.4.1)
+Requirement already satisfied: nvidia-cufft-cu12==11.3.0.4 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (11.3.0.4)
+Requirement already satisfied: nvidia-curand-cu12==10.3.7.77 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (10.3.7.77)
+Requirement already satisfied: nvidia-cusolver-cu12==11.7.1.2 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (11.7.1.2)
+Requirement already satisfied: nvidia-cusparse-cu12==12.5.4.2 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (12.5.4.2)
+Requirement already satisfied: nvidia-cusparselt-cu12==0.7.1 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (0.7.1)
+Requirement already satisfied: nvidia-nccl-cu12==2.27.5 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (2.27.5)
+Requirement already satisfied: nvidia-nvshmem-cu12==3.4.5 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (3.4.5)
+Requirement already satisfied: nvidia-nvtx-cu12==12.6.77 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (12.6.77)
+Requirement already satisfied: nvidia-nvjitlink-cu12==12.6.85 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (12.6.85)
+Requirement already satisfied: nvidia-cufile-cu12==1.11.1.6 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (1.11.1.6)
+Requirement already satisfied: triton==3.6.0 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from torch>=2.2->policykg-guardrails==0.1.0) (3.6.0)
+Requirement already satisfied: cuda-pathfinder~=1.1 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from cuda-bindings==12.9.4->torch>=2.2->policykg-guardrails==0.1.0) (1.2.2)
+Requirement already satisfied: requests in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from huggingface_hub>=0.21.0->accelerate>=0.33->policykg-guardrails==0.1.0) (2.32.5)
+Requirement already satisfied: tqdm>=4.42.1 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from huggingface_hub>=0.21.0->accelerate>=0.33->policykg-guardrails==0.1.0) (4.67.1)
+Requirement already satisfied: hf-xet<2.0.0,>=1.1.3 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from huggingface_hub>=0.21.0->accelerate>=0.33->policykg-guardrails==0.1.0) (1.2.0)
+Collecting iniconfig>=1.0.1 (from pytest>=8.2->policykg-guardrails==0.1.0)
+  Using cached iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+Collecting pluggy<2,>=1.5 (from pytest>=8.2->policykg-guardrails==0.1.0)
+  Using cached pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+Collecting pygments>=2.7.2 (from pytest>=8.2->policykg-guardrails==0.1.0)
+  Using cached pygments-2.19.2-py3-none-any.whl.metadata (2.5 kB)
+Requirement already satisfied: mpmath<1.4,>=1.1.0 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from sympy>=1.13.3->torch>=2.2->policykg-guardrails==0.1.0) (1.3.0)
+Requirement already satisfied: regex!=2019.12.17 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from transformers>=4.44->policykg-guardrails==0.1.0) (2026.1.15)
+Requirement already satisfied: tokenizers<=0.23.0,>=0.22.0 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from transformers>=4.44->policykg-guardrails==0.1.0) (0.22.2)
+Requirement already satisfied: MarkupSafe>=2.0 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from jinja2->torch>=2.2->policykg-guardrails==0.1.0) (2.1.5)
+Requirement already satisfied: charset_normalizer<4,>=2 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from requests->huggingface_hub>=0.21.0->accelerate>=0.33->policykg-guardrails==0.1.0) (3.4.4)
+Requirement already satisfied: idna<4,>=2.5 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from requests->huggingface_hub>=0.21.0->accelerate>=0.33->policykg-guardrails==0.1.0) (3.11)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from requests->huggingface_hub>=0.21.0->accelerate>=0.33->policykg-guardrails==0.1.0) (2.6.3)
+Requirement already satisfied: certifi>=2017.4.17 in /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages (from requests->huggingface_hub>=0.21.0->accelerate>=0.33->policykg-guardrails==0.1.0) (2026.1.4)
+Using cached pytest-9.0.2-py3-none-any.whl (374 kB)
+Using cached pluggy-1.6.0-py3-none-any.whl (20 kB)
+Using cached iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+Using cached pygments-2.19.2-py3-none-any.whl (1.2 MB)
+Building wheels for collected packages: policykg-guardrails
+  Building editable for policykg-guardrails (pyproject.toml): started
+  Building editable for policykg-guardrails (pyproject.toml): finished with status 'done'
+  Created wheel for policykg-guardrails: filename=policykg_guardrails-0.1.0-0.editable-py3-none-any.whl size=2342 sha256=4cfa93d46f789655db8c6075b2a426074f080ae1c613c7218433a6a4d137cab5
+  Stored in directory: /tmp/pip-ephem-wheel-cache-9txm0ms0/wheels/fb/a0/a0/a4504dce0246bed9e93cbbbb0d659b10216964404bc1f73956
+Successfully built policykg-guardrails
+Installing collected packages: pygments, policykg-guardrails, pluggy, iniconfig, pytest
+
+Successfully installed iniconfig-2.3.0 pluggy-1.6.0 policykg-guardrails-0.1.0 pygments-2.19.2 pytest-9.0.2
+Python (post-conda): /arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/bin/python
+Python 3.11.14
+Warning: HF_TOKEN is not set. Model download may fail for gated repos.
+Visible CUDA devices: 2
+GPU 0: Tesla V100-SXM2-16GB (UUID: GPU-dfb59358-3d78-302b-b7ad-e179154a0a89)
+GPU 1: Tesla V100-SXM2-16GB (UUID: GPU-5d8e3ae7-c7ee-ba18-014c-76b10ffe4d1c)
+GPU 2: Tesla V100-SXM2-16GB (UUID: GPU-8ba5e594-df74-600f-809b-1cbfe1a9db26)
+GPU 3: Tesla V100-SXM2-16GB (UUID: GPU-4963dbe9-af99-7d41-23eb-d390a8419363)
+[QWEN-SMOKE] prompt#1 response: READY
+[QWEN-SMOKE] prompt#2 response: 4
+[QWEN-SMOKE] prompt#3 response: Decision
+decision = Permit
+confidence = High
+Smoke test passed. Outputs written to: /arf/scratch/fekeskin/Policy-KG-Guardrails/outputs/qwen_smoke_20260315_1242_5389983.jsonl
+Qwen smoke test completed successfully.
+Results saved at: /arf/scratch/fekeskin/Policy-KG-Guardrails/outputs/qwen_smoke_20260315_1242_5389983.jsonl
+Job Finished: Sun Mar 15 12:47:52 PM +03 2026

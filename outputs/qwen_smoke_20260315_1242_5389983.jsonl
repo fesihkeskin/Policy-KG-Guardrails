@@ -1,0 +1,3 @@
+{"idx": 1, "prompt": "Reply with exactly one word: READY", "response": "READY"}
+{"idx": 2, "prompt": "What is 2+2? Answer with one number only.", "response": "4"}
+{"idx": 3, "prompt": "You are a policy assistant. Return exactly:\nDecision\ndecision = Permit\nconfidence = High", "response": "Decision\ndecision = Permit\nconfidence = High"}
