@@ -233,3 +233,10 @@ Conservative memory/token profile:
 ```bash
 sbatch --export=ALL,HF_TOKEN=${HF_TOKEN},MODEL_ID=Qwen/Qwen2.5-7B-Instruct,TRUST_REMOTE_CODE=0,MAX_SMOKE_TOKENS=64,MAX_PHASE1=250,MAX_PHASE2=80,MAX_TOKENS=256 slurm/run_all_policy_kg.slurm
 ```
+
+```bash
+sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_qwen_smoke_akya_%j.out \
+        -e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_qwen_smoke_akya_%j.err \
+        slurm/qwen_smoke_akya.slurm
+		
+```

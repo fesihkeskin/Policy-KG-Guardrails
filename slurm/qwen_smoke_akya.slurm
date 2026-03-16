@@ -7,7 +7,7 @@
 #SBATCH -N 1
 #SBATCH -n 1
 #SBATCH --cpus-per-task=10
-#SBATCH --mem=128G
+#SBATCH --mem=32G
 #SBATCH --gres=gpu:1
 #SBATCH --time=00:10:00
 
@@ -65,6 +65,12 @@ echo "HF Cache: ${HF_HOME}"
 echo "Output File: ${OUTPUT_FILE}"
 echo "Model ID: ${MODEL_ID}"
 echo "Max Tokens: ${MAX_TOKENS}"
+
+if [[ "${MODEL_ID}" == "Qwen/Qwen3.5-7B-Instruct" ]]; then
+  echo "Error: MODEL_ID=${MODEL_ID} is not available on Hugging Face (404)."
+  echo "Use a valid model id, e.g. Qwen/Qwen3.5-9B or Qwen/Qwen2.5-7B-Instruct."
+  exit 2
+fi
 
 MODEL_CACHE_ROOT="${HF_HOME}/hub/models--${MODEL_ID//\//--}"
 if [[ -d "${MODEL_CACHE_ROOT}" ]]; then
@@ -127,4 +133,7 @@ python scripts/qwen_smoke_test.py \
 echo "Qwen smoke test completed successfully."
 echo "Results saved at: ${OUTPUT_FILE}"
 echo "Job Finished: $(date)"
-# Usage: sbatch slurm/qwen_smoke_akya.slurm
+# Usage: 
+# sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_qwen_smoke_akya_%j.out \
+#         -e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_qwen_smoke_akya_%j.err \
+#         slurm/qwen_smoke_akya.slurm

@@ -61,8 +61,8 @@ export MKL_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 # Example candidates:
 # - Qwen/Qwen2.5-7B-Instruct
 # - Qwen/Qwen2.5-3B-Instruct
-# - <your Qwen 3.5 model id>
-export MODEL_ID="${MODEL_ID:-Qwen/Qwen2.5-7B-Instruct}"
+# - Qwen/Qwen3.5-9B
+export MODEL_ID="${MODEL_ID:-Qwen/Qwen3.5-9B}"
 export MAX_TOKENS="${MAX_TOKENS:-96}"
 export DATE_TAG="$(date +%Y%m%d_%H%M)"
 export OUTPUT_FILE="${PROJECT_DIR}/outputs/qwen_smoke_warm_cache_${DATE_TAG}_${SLURM_JOB_ID:-manual}.jsonl"
@@ -74,6 +74,12 @@ echo "HF Cache: ${HF_HOME}"
 echo "Output File: ${OUTPUT_FILE}"
 echo "Model ID: ${MODEL_ID}"
 echo "Max Tokens: ${MAX_TOKENS}"
+
+if [[ "${MODEL_ID}" == "Qwen/Qwen3.5-7B-Instruct" ]]; then
+  echo "Error: MODEL_ID=${MODEL_ID} is not available on Hugging Face (404)."
+  echo "Use a valid model id, e.g. Qwen/Qwen3.5-9B or Qwen/Qwen2.5-7B-Instruct."
+  exit 2
+fi
 
 MODEL_CACHE_ROOT="${HF_HOME}/hub/models--${MODEL_ID//\//--}"
 if [[ -d "${MODEL_CACHE_ROOT}" ]]; then
@@ -145,3 +151,8 @@ echo "Results saved at: ${OUTPUT_FILE}"
 echo "Job Finished: $(date)"
 
 # usage for qwen 3.5 smoke test with policy-kg guardrails:
+# sbatch --export=MODEL_ID=Qwen/Qwen3.5-9B,MAX_TOKENS=128,TRUST_REMOTE_CODE=1 slurm/warm_cache_policy_kg.slurm
+
+# sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_warm_cache_policy_kg_%j.out \
+#         -e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_warm_cache_policy_kg_%j.err \
+#         slurm/warm_cache_policy_kg.slurm

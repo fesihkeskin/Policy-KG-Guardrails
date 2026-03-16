@@ -211,11 +211,15 @@ class HFLocalCausalLMClient:
             return self._processor(text=[chat_text], return_tensors="pt")
 
         if hasattr(self._tokenizer, "apply_chat_template"):
-            return {"input_ids": self._tokenizer.apply_chat_template(
+            templated = self._tokenizer.apply_chat_template(
                 messages,
                 add_generation_prompt=True,
                 return_tensors="pt",
-            )}
+            )
+            # Newer tokenizer versions may return BatchEncoding instead of Tensor.
+            if hasattr(templated, "items"):
+                return dict(templated)
+            return {"input_ids": templated}
 
         # Fallback for tokenizers without chat template support.
         text = f"System: {system_prompt}\nUser: {user_prompt}\nAssistant:"
@@ -241,9 +245,29 @@ class HFLocalCausalLMClient:
         model_inputs = self._build_prompt(system_prompt, user_prompt)
         model_device = self._model_device()
 
+        # Some tokenizer/model combinations can yield nested BatchEncoding values
+        # (e.g., input_ids itself becoming a mapping). Unwrap to plain tensors.
+        normalized_inputs: dict[str, Any] = {}
         for key, value in list(model_inputs.items()):
+            if hasattr(value, "items"):
+                nested = dict(value)
+                if key in nested:
+                    value = nested[key]
+                elif "input_ids" in nested:
+                    value = nested["input_ids"]
+                elif len(nested) == 1:
+                    value = next(iter(nested.values()))
             if hasattr(value, "to"):
-                model_inputs[key] = value.to(model_device)
+                value = value.to(model_device)
+            normalized_inputs[key] = value
+
+        model_inputs = normalized_inputs
+
+        if "input_ids" in model_inputs and not hasattr(model_inputs["input_ids"], "shape"):
+            raise RuntimeError(
+                f"Unsupported input_ids type for generation: {type(model_inputs['input_ids']).__name__}. "
+                "Expected a tensor-like object with `.shape`."
+            )
 
         do_sample = temperature > 0.0
         eos_token_id = getattr(self._tokenizer, "eos_token_id", None)

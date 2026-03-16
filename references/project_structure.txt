@@ -6,8 +6,6 @@ Policy-KG-Guardrails/
 │   └── healthcare_README.md
 ├── logs/
 │    
-│   ├── qwen_smoke_5389983.err
-│   └── qwen_smoke_5389983.out
 ├── outputs/
 │    
 │   ├── predictions_kg-rag.jsonl

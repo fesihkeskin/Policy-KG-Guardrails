@@ -71,6 +71,12 @@ echo "Max Tokens: ${MAX_TOKENS}"
 echo "Temperature: ${TEMP}"
 echo "Top-p: ${TOP_P}"
 
+if [[ "${MODEL_ID}" == "Qwen/Qwen3.5-7B-Instruct" ]]; then
+  echo "Error: MODEL_ID=${MODEL_ID} is not available on Hugging Face (404)."
+  echo "Use a valid model id, e.g. Qwen/Qwen3.5-9B or Qwen/Qwen2.5-7B-Instruct."
+  exit 2
+fi
+
 MODEL_CACHE_ROOT="${HF_HOME}/hub/models--${MODEL_ID//\//--}"
 if [[ -d "${MODEL_CACHE_ROOT}" ]]; then
   MODEL_SNAPSHOT_COUNT=0

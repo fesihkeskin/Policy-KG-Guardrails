@@ -1,0 +1,93 @@
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]Fetching 4 files: 100%|██████████| 4/4 [00:00<00:00, 26092.09it/s]
+The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights:   0%|          | 0/427 [00:00<?, ?it/s]Loading weights:   0%|          | 1/427 [00:01<10:26,  1.47s/it]Loading weights:   0%|          | 2/427 [00:02<10:05,  1.42s/it]Loading weights:   2%|▏         | 7/427 [00:03<03:07,  2.24it/s]Loading weights:   2%|▏         | 8/427 [00:05<04:45,  1.47it/s]Loading weights:   2%|▏         | 9/427 [00:06<05:20,  1.30it/s]Loading weights:   2%|▏         | 10/427 [00:07<06:04,  1.14it/s]Loading weights:   3%|▎         | 12/427 [00:08<04:55,  1.41it/s]Loading weights:   3%|▎         | 13/427 [00:10<05:33,  1.24it/s]Loading weights:   3%|▎         | 14/427 [00:11<05:56,  1.16it/s]Loading weights:   4%|▎         | 15/427 [00:12<06:46,  1.01it/s]Loading weights:   5%|▍         | 21/427 [00:13<02:40,  2.53it/s]Loading weights:   5%|▌         | 22/427 [00:13<03:03,  2.21it/s]Loading weights:   5%|▌         | 23/427 [00:14<03:08,  2.14it/s]Loading weights:   7%|▋         | 29/427 [00:14<01:20,  4.95it/s]Loading weights:  41%|████      | 176/427 [00:14<00:02, 100.10it/s]Loading weights:  66%|██████▌   | 280/427 [00:14<00:00, 179.68it/s]Loading weights:  93%|█████████▎| 397/427 [00:15<00:01, 25.85it/s] 
+Loading weights:   0%|          | 0/760 [00:00<?, ?it/s]Loading weights:   0%|          | 1/760 [00:01<14:48,  1.17s/it]Loading weights:   0%|          | 2/760 [00:02<14:56,  1.18s/it]Loading weights:   1%|          | 7/760 [00:03<04:35,  2.73it/s]Loading weights:   1%|          | 8/760 [00:03<05:12,  2.41it/s]Loading weights:   1%|          | 9/760 [00:04<06:10,  2.03it/s]Loading weights:   1%|▏         | 10/760 [00:05<07:03,  1.77it/s]Loading weights:   2%|▏         | 14/760 [00:05<03:41,  3.37it/s]Loading weights:   2%|▏         | 15/760 [00:06<03:37,  3.42it/s]Loading weights:   3%|▎         | 21/760 [00:06<01:44,  7.05it/s]Loading weights:   3%|▎         | 24/760 [00:06<01:24,  8.69it/s]Loading weights:   3%|▎         | 26/760 [00:06<01:14,  9.90it/s]Loading weights:   4%|▎         | 28/760 [00:06<01:14,  9.77it/s]Loading weights:  16%|█▌        | 119/760 [00:06<00:04, 138.43it/s]Loading weights:  19%|█▉        | 148/760 [00:06<00:28, 21.44it/s] 
+Traceback (most recent call last):
+  File "/arf/scratch/fekeskin/Policy-KG-Guardrails/src/policykg/llm.py", line 160, in __post_init__
+    self._model = AutoModelForCausalLM.from_pretrained(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages/transformers/models/auto/auto_factory.py", line 374, in from_pretrained
+    return model_class.from_pretrained(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages/transformers/modeling_utils.py", line 4137, in from_pretrained
+    loading_info, disk_offload_index = cls._load_pretrained_model(model, state_dict, checkpoint_files, load_config)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages/transformers/modeling_utils.py", line 4256, in _load_pretrained_model
+    loading_info, disk_offload_index = convert_and_load_state_dict_in_model(
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages/transformers/core_model_loading.py", line 1212, in convert_and_load_state_dict_in_model
+    realized_value = mapping.convert(
+                     ^^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages/transformers/core_model_loading.py", line 678, in convert
+    collected_tensors = self.materialize_tensors()
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages/transformers/core_model_loading.py", line 654, in materialize_tensors
+    tensors = [future.result() for future in tensors if future.result() is not None]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages/transformers/core_model_loading.py", line 654, in <listcomp>
+    tensors = [future.result() for future in tensors if future.result() is not None]
+                                                        ^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/concurrent/futures/_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages/transformers/core_model_loading.py", line 800, in _job
+    return _materialize_copy(tensor, device, dtype)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages/transformers/core_model_loading.py", line 789, in _materialize_copy
+    tensor = tensor.to(device=device, dtype=dtype)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 96.00 MiB. GPU 0 has a total capacity of 15.77 GiB of which 78.69 MiB is free. Including non-PyTorch memory, this process has 15.69 GiB memory in use. Of the allocated memory 15.31 GiB is allocated by PyTorch, and 15.98 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/arf/scratch/fekeskin/Policy-KG-Guardrails/scripts/qwen_smoke_test.py", line 71, in <module>
+    main()
+  File "/arf/scratch/fekeskin/Policy-KG-Guardrails/scripts/qwen_smoke_test.py", line 28, in main
+    client = HFLocalCausalLMClient(
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 7, in __init__
+  File "/arf/scratch/fekeskin/Policy-KG-Guardrails/src/policykg/llm.py", line 182, in __post_init__
+    self._model = AutoModelForImageTextToText.from_pretrained(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages/transformers/models/auto/auto_factory.py", line 374, in from_pretrained
+    return model_class.from_pretrained(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages/transformers/modeling_utils.py", line 4137, in from_pretrained
+    loading_info, disk_offload_index = cls._load_pretrained_model(model, state_dict, checkpoint_files, load_config)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages/transformers/modeling_utils.py", line 4256, in _load_pretrained_model
+    loading_info, disk_offload_index = convert_and_load_state_dict_in_model(
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages/transformers/core_model_loading.py", line 1212, in convert_and_load_state_dict_in_model
+    realized_value = mapping.convert(
+                     ^^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages/transformers/core_model_loading.py", line 678, in convert
+    collected_tensors = self.materialize_tensors()
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages/transformers/core_model_loading.py", line 654, in materialize_tensors
+    tensors = [future.result() for future in tensors if future.result() is not None]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages/transformers/core_model_loading.py", line 654, in <listcomp>
+    tensors = [future.result() for future in tensors if future.result() is not None]
+                                                        ^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages/transformers/core_model_loading.py", line 800, in _job
+    return _materialize_copy(tensor, device, dtype)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/arf/home/fekeskin/miniconda3/envs/pytorchgpu_env/lib/python3.11/site-packages/transformers/core_model_loading.py", line 789, in _materialize_copy
+    tensor = tensor.to(device=device, dtype=dtype)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 96.00 MiB. GPU 0 has a total capacity of 15.77 GiB of which 6.69 MiB is free. Including non-PyTorch memory, this process has 15.76 GiB memory in use. Of the allocated memory 15.31 GiB is allocated by PyTorch, and 89.80 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
