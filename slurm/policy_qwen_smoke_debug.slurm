@@ -1,15 +1,15 @@
 #!/bin/bash
-#SBATCH -p akya-cuda
+#SBATCH --partition=debug
 #SBATCH -A fekeskin
-#SBATCH -J policykg-run-all
+#SBATCH -J policykg-qwen-smoke-debug
+#SBATCH -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/policy_qwen_smoke_debug_%j.out
+#SBATCH -e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/policy_qwen_smoke_debug_%j.err
 #SBATCH -N 1
 #SBATCH -n 1
-#SBATCH --cpus-per-task=10
-#SBATCH --mem=96G
+#SBATCH --cpus-per-task=20
+#SBATCH --mem=32G
 #SBATCH --gres=gpu:1
-#SBATCH --time=24:00:00
-#SBATCH -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/run_all_%j.out
-#SBATCH -e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/run_all_%j.err
+#SBATCH --time=00:20:00            # Duration for test (Max 1h for debug)
 
 set -euo pipefail
 
@@ -41,9 +41,6 @@ echo "PATH: ${PATH}"
 echo "Python (pre-conda): $(which python 2>/dev/null || echo N/A)"
 echo "======================"
 
-# -------------------------
-# Paths / env
-# -------------------------
 export SCRATCH_DIR="${SCRATCH_DIR:-/arf/scratch/${USER}}"
 export PROJECT_DIR="${PROJECT_DIR:-${SCRATCH_DIR}/Policy-KG-Guardrails}"
 export HF_HOME="${HF_HOME:-${SCRATCH_DIR}/hf_cache}"
@@ -51,55 +48,32 @@ export HF_DATASETS_CACHE="${HF_DATASETS_CACHE:-${HF_HOME}/datasets}"
 export PYTHONPATH="${PROJECT_DIR}/src:${PYTHONPATH:-}"
 export TOKENIZERS_PARALLELISM=false
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-export TRANSFORMERS_CACHE="${HF_HOME}"
 export NCCL_DEBUG="${NCCL_DEBUG:-WARN}"
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 export MKL_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 
-# Qwen 3.5 9B default tuned for 16GB VRAM (4-bit quantization in Python client).
-export MODEL_ID="${MODEL_ID:-Qwen/Qwen3.5-9B}"
-export MAX_SMOKE_TOKENS="${MAX_SMOKE_TOKENS:-96}"
-export MAX_PHASE1="${MAX_PHASE1:-400}"
-export MAX_PHASE2="${MAX_PHASE2:-120}"
+export MODEL_ID="${MODEL_ID:-Qwen/Qwen3.5-4B}"
+export MAX_TOKENS="${MAX_TOKENS:-96}"
 export TEMP="${TEMP:-0.1}"
 export TOP_P="${TOP_P:-0.9}"
-export MAX_TOKENS="${MAX_TOKENS:-384}"
 export TRUST_REMOTE_CODE="${TRUST_REMOTE_CODE:-1}"
-export POLICY_FILE="${POLICY_FILE:-examples/healthcare.abac}"
-export README_FILE="${README_FILE:-examples/healthcare_README.md}"
+export DATE_TAG="$(date +%Y%m%d_%H%M)"
+export OUTPUT_FILE="${PROJECT_DIR}/outputs/policy_qwen_smoke_debug_${DATE_TAG}_${SLURM_JOB_ID:-manual}.jsonl"
 
-# Fallback for repos/branches where healthcare assets live under data/healthcare.
-if [[ "${POLICY_FILE}" == "examples/healthcare.abac" ]] && [[ ! -f "${PROJECT_DIR}/${POLICY_FILE}" ]] && [[ -f "${PROJECT_DIR}/data/healthcare/healthcare.abac" ]]; then
-  POLICY_FILE="data/healthcare/healthcare.abac"
-  echo "Info: POLICY_FILE fallback applied -> ${POLICY_FILE}"
-fi
-
-if [[ "${README_FILE}" == "examples/healthcare_README.md" ]] && [[ ! -f "${PROJECT_DIR}/${README_FILE}" ]] && [[ -f "${PROJECT_DIR}/data/healthcare/healthcare_README.md" ]]; then
-  README_FILE="data/healthcare/healthcare_README.md"
-  echo "Info: README_FILE fallback applied -> ${README_FILE}"
-fi
-
-DATE_TAG=$(date +%Y%m%d_%H%M)
-OUT_DIR="${PROJECT_DIR}/outputs/${DATE_TAG}"
-mkdir -p "${PROJECT_DIR}/logs" "${HF_HOME}" "${HF_DATASETS_CACHE}" "${OUT_DIR}"
+mkdir -p "${PROJECT_DIR}/logs" "${PROJECT_DIR}/outputs" "${HF_HOME}" "${HF_DATASETS_CACHE}"
 
 echo "Project Dir: ${PROJECT_DIR}"
 echo "HF Cache: ${HF_HOME}"
-echo "Output Dir: ${OUT_DIR}"
+echo "Output File: ${OUTPUT_FILE}"
 echo "Model ID: ${MODEL_ID}"
-echo "Policy File: ${POLICY_FILE}"
-echo "README File: ${README_FILE}"
-echo "Phase1 Limit: ${MAX_PHASE1}"
-echo "Phase2 Limit: ${MAX_PHASE2}"
+echo "Max Tokens: ${MAX_TOKENS}"
 echo "Temperature: ${TEMP}"
 echo "Top-p: ${TOP_P}"
-echo "Max Tokens: ${MAX_TOKENS}"
-echo "Trust Remote Code: ${TRUST_REMOTE_CODE}"
 
 if [[ "${MODEL_ID}" == "Qwen/Qwen3.5-7B-Instruct" ]]; then
   echo "Error: MODEL_ID=${MODEL_ID} is not available on Hugging Face (404)."
-  echo "Use a valid model id, e.g. Qwen/Qwen3.5-9B or Qwen/Qwen2.5-7B-Instruct."
+  echo "Use a valid model id, e.g. Qwen/Qwen3.5-4B (default), Qwen/Qwen3.5-9B, or Qwen/Qwen2.5-7B-Instruct."
   exit 2
 fi
 
@@ -133,33 +107,10 @@ if [[ ! -d "${PROJECT_DIR}" ]]; then
 fi
 
 if [[ ! -f "${PROJECT_DIR}/scripts/qwen_smoke_test.py" ]]; then
-  echo "Error: Missing script: ${PROJECT_DIR}/scripts/qwen_smoke_test.py"
+  echo "Error: Missing smoke script at ${PROJECT_DIR}/scripts/qwen_smoke_test.py"
   exit 1
 fi
 
-if [[ ! -f "${PROJECT_DIR}/scripts/run_experiments.py" ]]; then
-  echo "Error: Missing script: ${PROJECT_DIR}/scripts/run_experiments.py"
-  exit 1
-fi
-
-if [[ ! -f "${PROJECT_DIR}/scripts/check_results.py" ]]; then
-  echo "Error: Missing script: ${PROJECT_DIR}/scripts/check_results.py"
-  exit 1
-fi
-
-if [[ ! -f "${PROJECT_DIR}/${POLICY_FILE}" ]]; then
-  echo "Error: Policy file not found: ${PROJECT_DIR}/${POLICY_FILE}"
-  exit 1
-fi
-
-if [[ ! -f "${PROJECT_DIR}/${README_FILE}" ]]; then
-  echo "Error: README file not found: ${PROJECT_DIR}/${README_FILE}"
-  exit 1
-fi
-
-# -------------------------
-# Conda
-# -------------------------
 eval "$(${CONDA_ROOT:-/arf/home/${USER}/miniconda3}/bin/conda shell.bash hook)"
 conda activate "${CONDA_ENV:-pytorchgpu_env}"
 
@@ -184,37 +135,15 @@ if [[ "${TRUST_REMOTE_CODE}" == "1" ]]; then
   TRC_ARG+=(--trust-remote-code)
 fi
 
-# -------------------------
-# 0) Qwen smoke test
-# -------------------------
 python scripts/qwen_smoke_test.py \
   --model-id "${MODEL_ID}" \
-  --output "${OUT_DIR}/qwen_smoke.jsonl" \
-  --max-tokens "${MAX_SMOKE_TOKENS}" \
-  --temperature "${TEMP}" \
-  --top-p "${TOP_P}" \
-  "${TRC_ARG[@]}"
-
-# -------------------------
-# 1) Main experiments
-# -------------------------
-python scripts/run_experiments.py \
-  --policy "${POLICY_FILE}" \
-  --readme "${README_FILE}" \
-  --output-dir "${OUT_DIR}" \
-  --llm-backend hf-local \
-  --model-id "${MODEL_ID}" \
-  --max-phase1 "${MAX_PHASE1}" \
-  --max-phase2 "${MAX_PHASE2}" \
-  --temperature "${TEMP}" \
-  --top-p "${TOP_P}" \
+  --output "${OUTPUT_FILE}" \
   --max-tokens "${MAX_TOKENS}" \
+  --temperature "${TEMP}" \
+  --top-p "${TOP_P}" \
   "${TRC_ARG[@]}"
 
-# -------------------------
-# 2) Verify outputs
-# -------------------------
-python scripts/check_results.py --output-dir "${OUT_DIR}" --min-lines 1
-
-echo "All done. Output dir: ${OUT_DIR}"
+echo "Qwen smoke test completed successfully."
+echo "Results saved at: ${OUTPUT_FILE}"
 echo "Job Finished: $(date)"
+# Usage: sbatch slurm/policy_qwen_smoke_debug.slurm

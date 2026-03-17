@@ -1,15 +1,15 @@
 #!/bin/bash
 #SBATCH --partition=debug
 #SBATCH -A fekeskin
-#SBATCH -J policykg-qwen-smoke-debug
-#SBATCH -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/qwen_smoke_debug_%j.out
-#SBATCH -e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/qwen_smoke_debug_%j.err
+#SBATCH -J policy-warm-cache
 #SBATCH -N 1
 #SBATCH -n 1
 #SBATCH --cpus-per-task=20
-#SBATCH --mem=32G
+#SBATCH --mem=48G
 #SBATCH --gres=gpu:1
-#SBATCH --time=00:20:00            # Duration for test (Max 1h for debug)
+#SBATCH --time=00:30:00
+#SBATCH -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/policy-warm-cache_%j.out
+#SBATCH -e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/policy-warm-cache_%j.err
 
 set -euo pipefail
 
@@ -41,6 +41,9 @@ echo "PATH: ${PATH}"
 echo "Python (pre-conda): $(which python 2>/dev/null || echo N/A)"
 echo "======================"
 
+# -------------------------
+# Paths / env
+# -------------------------
 export SCRATCH_DIR="${SCRATCH_DIR:-/arf/scratch/${USER}}"
 export PROJECT_DIR="${PROJECT_DIR:-${SCRATCH_DIR}/Policy-KG-Guardrails}"
 export HF_HOME="${HF_HOME:-${SCRATCH_DIR}/hf_cache}"
@@ -48,32 +51,34 @@ export HF_DATASETS_CACHE="${HF_DATASETS_CACHE:-${HF_HOME}/datasets}"
 export PYTHONPATH="${PROJECT_DIR}/src:${PYTHONPATH:-}"
 export TOKENIZERS_PARALLELISM=false
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export TRANSFORMERS_CACHE="${HF_HOME}"
 export NCCL_DEBUG="${NCCL_DEBUG:-WARN}"
 export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 export MKL_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 
-export MODEL_ID="${MODEL_ID:-Qwen/Qwen3.5-9B}"
+# Set to your preferred Qwen model id before sbatch or edit here.
+# Example candidates:
+# - Qwen/Qwen3.5-4B   (default, fits 16 GB VRAM in 4-bit)
+# - Qwen/Qwen3.5-9B   (needs >=24 GB VRAM in 4-bit)
+# - Qwen/Qwen2.5-7B-Instruct
+# - Qwen/Qwen2.5-3B-Instruct
+export MODEL_ID="${MODEL_ID:-Qwen/Qwen3.5-4B}"
 export MAX_TOKENS="${MAX_TOKENS:-96}"
-export TEMP="${TEMP:-0.1}"
-export TOP_P="${TOP_P:-0.9}"
-export TRUST_REMOTE_CODE="${TRUST_REMOTE_CODE:-1}"
 export DATE_TAG="$(date +%Y%m%d_%H%M)"
-export OUTPUT_FILE="${PROJECT_DIR}/outputs/qwen_smoke_${DATE_TAG}_${SLURM_JOB_ID:-manual}.jsonl"
+export OUTPUT_FILE="${PROJECT_DIR}/outputs/policy_warm_cache_${DATE_TAG}_${SLURM_JOB_ID:-manual}.jsonl"
 
-mkdir -p "${PROJECT_DIR}/logs" "${PROJECT_DIR}/outputs" "${HF_HOME}" "${HF_DATASETS_CACHE}"
+mkdir -p "${PROJECT_DIR}/logs" "${HF_HOME}" "${HF_DATASETS_CACHE}" "${PROJECT_DIR}/outputs"
 
 echo "Project Dir: ${PROJECT_DIR}"
 echo "HF Cache: ${HF_HOME}"
 echo "Output File: ${OUTPUT_FILE}"
 echo "Model ID: ${MODEL_ID}"
 echo "Max Tokens: ${MAX_TOKENS}"
-echo "Temperature: ${TEMP}"
-echo "Top-p: ${TOP_P}"
 
 if [[ "${MODEL_ID}" == "Qwen/Qwen3.5-7B-Instruct" ]]; then
   echo "Error: MODEL_ID=${MODEL_ID} is not available on Hugging Face (404)."
-  echo "Use a valid model id, e.g. Qwen/Qwen3.5-9B or Qwen/Qwen2.5-7B-Instruct."
+  echo "Use a valid model id, e.g. Qwen/Qwen3.5-4B (default), Qwen/Qwen3.5-9B, or Qwen/Qwen2.5-7B-Instruct."
   exit 2
 fi
 
@@ -107,19 +112,25 @@ if [[ ! -d "${PROJECT_DIR}" ]]; then
 fi
 
 if [[ ! -f "${PROJECT_DIR}/scripts/qwen_smoke_test.py" ]]; then
-  echo "Error: Missing smoke script at ${PROJECT_DIR}/scripts/qwen_smoke_test.py"
+  echo "Error: Missing script: ${PROJECT_DIR}/scripts/qwen_smoke_test.py"
   exit 1
 fi
 
+# -------------------------
+# Conda
+# -------------------------
 eval "$(${CONDA_ROOT:-/arf/home/${USER}/miniconda3}/bin/conda shell.bash hook)"
 conda activate "${CONDA_ENV:-pytorchgpu_env}"
 
 cd "${PROJECT_DIR}"
+
+# Install project + llm deps in current env (idempotent)
 python -m pip install -e .[dev,llm]
 
 echo "Python (post-conda): $(which python)"
 python --version || true
 
+# Optional gated access
 if [[ -n "${HF_TOKEN:-}" ]]; then
   export HUGGINGFACE_HUB_TOKEN="${HF_TOKEN}"
   echo "HF token detected and exported."
@@ -130,20 +141,19 @@ fi
 echo "Visible CUDA devices: ${CUDA_VISIBLE_DEVICES:-N/A}"
 nvidia-smi -L || true
 
-TRC_ARG=()
-if [[ "${TRUST_REMOTE_CODE}" == "1" ]]; then
-  TRC_ARG+=(--trust-remote-code)
-fi
-
+# Download model weights and verify generation works
 python scripts/qwen_smoke_test.py \
   --model-id "${MODEL_ID}" \
   --output "${OUTPUT_FILE}" \
-  --max-tokens "${MAX_TOKENS}" \
-  --temperature "${TEMP}" \
-  --top-p "${TOP_P}" \
-  "${TRC_ARG[@]}"
+  --max-tokens "${MAX_TOKENS}"
 
-echo "Qwen smoke test completed successfully."
+echo "Warm-cache complete."
 echo "Results saved at: ${OUTPUT_FILE}"
 echo "Job Finished: $(date)"
-# Usage: sbatch slurm/qwen_smoke_debug.slurm
+
+# usage for qwen smoke test with policy-kg guardrails:
+# sbatch --export=MODEL_ID=Qwen/Qwen3.5-4B,MAX_TOKENS=128,TRUST_REMOTE_CODE=1 slurm/policy_warm_cache.slurm
+
+# sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_warm_cache_%j.out \
+#         -e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_warm_cache_%j.err \
+#         slurm/policy_warm_cache.slurm

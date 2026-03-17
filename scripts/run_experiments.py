@@ -34,7 +34,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--model-id",
-        default="Qwen/Qwen3.5-9B",
+        default="Qwen/Qwen3.5-4B",
         help="Hugging Face model ID for --llm-backend=hf-local",
     )
     parser.add_argument(

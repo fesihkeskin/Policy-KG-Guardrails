@@ -6,13 +6,14 @@ Policy-KG-Guardrails/
 │   └── healthcare_README.md
 ├── logs/
 │    
+│   ├── 20260317_0038_qwen_smoke_akya_5395709.err
+│   └── 20260317_0038_qwen_smoke_akya_5395709.out
 ├── outputs/
 │    
 │   ├── predictions_kg-rag.jsonl
 │   ├── predictions_policy-kg-guardrails.jsonl
 │   ├── predictions_text-rag.jsonl
 │   ├── predictions_vanilla.jsonl
-│   ├── qwen_smoke_20260315_1242_5389983.jsonl
 │   └── tables.md
 ├── references/
 │    
@@ -27,10 +28,10 @@ Policy-KG-Guardrails/
 │   └── run_experiments.py
 ├── slurm/
 │    
-│   ├── qwen_smoke_akya.slurm
-│   ├── qwen_smoke_debug.slurm
-│   ├── run_all_policy_kg.slurm
-│   └── warm_cache_policy_kg.slurm
+│   ├── policy_qwen_smoke_akya.slurm
+│   ├── policy_qwen_smoke_debug.slurm
+│   ├── policy_run_all.slurm
+│   └── policy_warm_cache.slurm
 ├── src/
 │    
 │   ├── policykg/

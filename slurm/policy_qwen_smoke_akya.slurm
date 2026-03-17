@@ -2,8 +2,8 @@
 #SBATCH -p akya-cuda
 #SBATCH -A fekeskin
 #SBATCH -J policykg-qwen-smoke-akya
-#SBATCH -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/qwen_smoke_akya_%j.out
-#SBATCH -e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/qwen_smoke_akya_%j.err
+#SBATCH -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/policy_qwen_smoke_akya_%j.out
+#SBATCH -e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/policy_qwen_smoke_akya_%j.err
 #SBATCH -N 1
 #SBATCH -n 1
 #SBATCH --cpus-per-task=10
@@ -53,10 +53,10 @@ export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 export MKL_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 
-export MODEL_ID="${MODEL_ID:-Qwen/Qwen2.5-7B-Instruct}"
+export MODEL_ID="${MODEL_ID:-Qwen/Qwen3.5-4B}"
 export MAX_TOKENS="${MAX_TOKENS:-128}"
 export DATE_TAG="$(date +%Y%m%d_%H%M)"
-export OUTPUT_FILE="${PROJECT_DIR}/outputs/qwen_smoke_akya_${DATE_TAG}_${SLURM_JOB_ID:-manual}.jsonl"
+export OUTPUT_FILE="${PROJECT_DIR}/outputs/policy_qwen_smoke_akya_${DATE_TAG}_${SLURM_JOB_ID:-manual}.jsonl"
 
 mkdir -p "${PROJECT_DIR}/logs" "${PROJECT_DIR}/outputs" "${HF_HOME}" "${HF_DATASETS_CACHE}"
 
@@ -68,7 +68,7 @@ echo "Max Tokens: ${MAX_TOKENS}"
 
 if [[ "${MODEL_ID}" == "Qwen/Qwen3.5-7B-Instruct" ]]; then
   echo "Error: MODEL_ID=${MODEL_ID} is not available on Hugging Face (404)."
-  echo "Use a valid model id, e.g. Qwen/Qwen3.5-9B or Qwen/Qwen2.5-7B-Instruct."
+  echo "Use a valid model id, e.g. Qwen/Qwen3.5-4B (default), Qwen/Qwen3.5-9B, or Qwen/Qwen2.5-7B-Instruct."
   exit 2
 fi
 
@@ -134,6 +134,6 @@ echo "Qwen smoke test completed successfully."
 echo "Results saved at: ${OUTPUT_FILE}"
 echo "Job Finished: $(date)"
 # Usage: 
-# sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_qwen_smoke_akya_%j.out \
-#         -e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_qwen_smoke_akya_%j.err \
-#         slurm/qwen_smoke_akya.slurm
+# sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_qwen_smoke_akya_%j.out \
+#         -e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_qwen_smoke_akya_%j.err \
+#         slurm/policy_qwen_smoke_akya.slurm

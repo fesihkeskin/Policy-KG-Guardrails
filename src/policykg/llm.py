@@ -104,8 +104,12 @@ class HFLocalCausalLMClient:
     Local Hugging Face causal LM backend (Qwen-compatible).
 
     Recommended for 16GB VRAM:
-    - `model_id=\"Qwen/Qwen3.5-9B\"`
+    - `model_id="Qwen/Qwen3.5-4B"` (default, ~2.5 GB in 4-bit)
     - `load_in_4bit=True`
+
+    Other supported models (selectable via --model-id):
+    - `Qwen/Qwen3.5-9B`  (~5 GB in 4-bit, needs ≥24 GB VRAM)
+    - `Qwen/Qwen2.5-7B-Instruct`
     """
 
     model_id: str
@@ -136,6 +140,7 @@ class HFLocalCausalLMClient:
         model_kwargs: dict[str, Any] = {
             "device_map": self.device_map,
             "trust_remote_code": self.trust_remote_code,
+            "low_cpu_mem_usage": True,
         }
 
         if self.load_in_4bit:
@@ -163,6 +168,13 @@ class HFLocalCausalLMClient:
             )
             self._backend = "causal"
         except Exception:
+            # Free GPU memory left over from the failed first attempt so the
+            # fallback loader starts with a clean slate.
+            import gc
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+
             # Some Qwen 3.5 checkpoints are exposed as image-text models.
             # Fallback keeps text-only prompting operational for smoke tests.
             try:

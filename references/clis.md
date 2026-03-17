@@ -24,19 +24,27 @@ export HF_TOKEN=hf_xxx
 Default:
 
 ```bash
-sbatch slurm/warm_cache_policy_kg.slurm
+sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_warm_cache_%j.out \
+	-e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_warm_cache_%j.err \
+	slurm/policy_warm_cache.slurm
 ```
 
 With model/token overrides:
 
 ```bash
-sbatch --export=ALL,HF_TOKEN=${HF_TOKEN},MODEL_ID=Qwen/Qwen3.5-9B,MAX_TOKENS=96 slurm/warm_cache_policy_kg.slurm
+sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_warm_cache_%j.out \
+	-e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_warm_cache_%j.err \
+	--export=ALL,HF_TOKEN=${HF_TOKEN},MODEL_ID=Qwen/Qwen3.5-4B,MAX_TOKENS=96 \
+	slurm/policy_warm_cache.slurm
 ```
 
 Use a different conda env:
 
 ```bash
-sbatch --export=ALL,CONDA_ENV=pytorchgpu_env slurm/warm_cache_policy_kg.slurm
+sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_warm_cache_%j.out \
+	-e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_warm_cache_%j.err \
+	--export=ALL,CONDA_ENV=pytorchgpu_env \
+	slurm/policy_warm_cache.slurm
 ```
 
 ### 2.2 Qwen smoke debug
@@ -44,19 +52,27 @@ sbatch --export=ALL,CONDA_ENV=pytorchgpu_env slurm/warm_cache_policy_kg.slurm
 Default:
 
 ```bash
-sbatch slurm/qwen_smoke_debug.slurm
+sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_qwen_smoke_debug_%j.out \
+	-e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_qwen_smoke_debug_%j.err \
+	slurm/policy_qwen_smoke_debug.slurm
 ```
 
 Tune generation and remote code trust:
 
 ```bash
-sbatch --export=ALL,HF_TOKEN=${HF_TOKEN},MODEL_ID=Qwen/Qwen3.5-9B,MAX_TOKENS=128,TEMP=0.1,TOP_P=0.9,TRUST_REMOTE_CODE=1 slurm/qwen_smoke_debug.slurm
+sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_qwen_smoke_debug_%j.out \
+	-e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_qwen_smoke_debug_%j.err \
+	--export=ALL,HF_TOKEN=${HF_TOKEN},MODEL_ID=Qwen/Qwen3.5-4B,MAX_TOKENS=128,TEMP=0.1,TOP_P=0.9,TRUST_REMOTE_CODE=1 \
+	slurm/policy_qwen_smoke_debug.slurm
 ```
 
 Disable trust_remote_code:
 
 ```bash
-sbatch --export=ALL,MODEL_ID=Qwen/Qwen2.5-7B-Instruct,TRUST_REMOTE_CODE=0 slurm/qwen_smoke_debug.slurm
+sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_qwen_smoke_debug_%j.out \
+	-e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_qwen_smoke_debug_%j.err \
+	--export=ALL,MODEL_ID=Qwen/Qwen2.5-7B-Instruct,TRUST_REMOTE_CODE=0 \
+	slurm/policy_qwen_smoke_debug.slurm
 ```
 
 ### 2.3 Full pipeline (smoke + experiments + validation)
@@ -64,19 +80,27 @@ sbatch --export=ALL,MODEL_ID=Qwen/Qwen2.5-7B-Instruct,TRUST_REMOTE_CODE=0 slurm/
 Default:
 
 ```bash
-sbatch slurm/run_all_policy_kg.slurm
+sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_run_all_%j.out \
+	-e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_run_all_%j.err \
+	slurm/policy_run_all.slurm
 ```
 
 Common tuned run:
 
 ```bash
-sbatch --export=ALL,HF_TOKEN=${HF_TOKEN},MODEL_ID=Qwen/Qwen3.5-9B,TRUST_REMOTE_CODE=1,MAX_SMOKE_TOKENS=96,MAX_PHASE1=400,MAX_PHASE2=120,TEMP=0.1,TOP_P=0.9,MAX_TOKENS=384 slurm/run_all_policy_kg.slurm
+sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_run_all_%j.out \
+	-e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_run_all_%j.err \
+	--export=ALL,HF_TOKEN=${HF_TOKEN},MODEL_ID=Qwen/Qwen3.5-4B,TRUST_REMOTE_CODE=1,MAX_SMOKE_TOKENS=96,MAX_PHASE1=400,MAX_PHASE2=120,TEMP=0.1,TOP_P=0.9,MAX_TOKENS=384 \
+	slurm/policy_run_all.slurm
 ```
 
 Custom policy/readme inputs:
 
 ```bash
-sbatch --export=ALL,HF_TOKEN=${HF_TOKEN},POLICY_FILE=data/healthcare/healthcare.abac,README_FILE=data/healthcare/healthcare_README.md slurm/run_all_policy_kg.slurm
+sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_run_all_%j.out \
+	-e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_run_all_%j.err \
+	--export=ALL,HF_TOKEN=${HF_TOKEN},POLICY_FILE=data/healthcare/healthcare.abac,README_FILE=data/healthcare/healthcare_README.md \
+	slurm/policy_run_all.slurm
 ```
 
 ## 3) Override SLURM resources at submit time
@@ -84,14 +108,19 @@ sbatch --export=ALL,HF_TOKEN=${HF_TOKEN},POLICY_FILE=data/healthcare/healthcare.
 You can override `#SBATCH` defaults without editing files:
 
 ```bash
-sbatch -p akya-cuda --cpus-per-task=16 --mem=64G --time=02:00:00 --gres=gpu:1 slurm/qwen_smoke_debug.slurm
+sbatch -p akya-cuda --cpus-per-task=16 --mem=64G --time=02:00:00 --gres=gpu:1 \
+	-o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_qwen_smoke_debug_%j.out \
+	-e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_qwen_smoke_debug_%j.err \
+	slurm/policy_qwen_smoke_debug.slurm
 ```
 
 Custom log names per submission:
 
 ```bash
 TS=$(date +%Y%m%d_%H%M)
-sbatch -o logs/${TS}_run_all_%j.out -e logs/${TS}_run_all_%j.err slurm/run_all_policy_kg.slurm
+sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/${TS}_policy_run_all_%j.out \
+	-e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/${TS}_policy_run_all_%j.err \
+	slurm/policy_run_all.slurm
 ```
 
 ## 4) Local (non-SLURM) script runs
@@ -101,14 +130,14 @@ sbatch -o logs/${TS}_run_all_%j.out -e logs/${TS}_run_all_%j.err slurm/run_all_p
 Minimal:
 
 ```bash
-python scripts/qwen_smoke_test.py --model-id Qwen/Qwen3.5-9B --output outputs/qwen_smoke_local.jsonl
+python scripts/qwen_smoke_test.py --model-id Qwen/Qwen3.5-4B --output outputs/qwen_smoke_local.jsonl
 ```
 
 All useful options:
 
 ```bash
 python scripts/qwen_smoke_test.py \
-	--model-id Qwen/Qwen3.5-9B \
+	--model-id Qwen/Qwen3.5-4B \
 	--output outputs/qwen_smoke_local.jsonl \
 	--temperature 0.1 \
 	--top-p 0.9 \
@@ -119,7 +148,7 @@ python scripts/qwen_smoke_test.py \
 Disable 4-bit quantization:
 
 ```bash
-python scripts/qwen_smoke_test.py --model-id Qwen/Qwen3.5-9B --output outputs/qwen_smoke_fp16.jsonl --no-4bit
+python scripts/qwen_smoke_test.py --model-id Qwen/Qwen3.5-4B --output outputs/qwen_smoke_fp16.jsonl --no-4bit
 ```
 
 ### 4.2 `scripts/run_experiments.py`
@@ -142,7 +171,7 @@ python scripts/run_experiments.py \
 	--readme data/healthcare/healthcare_README.md \
 	--output-dir outputs/hf_local_run \
 	--llm-backend hf-local \
-	--model-id Qwen/Qwen3.5-9B \
+	--model-id Qwen/Qwen3.5-4B \
 	--max-phase1 400 \
 	--max-phase2 120 \
 	--temperature 0.1 \
@@ -159,7 +188,7 @@ python scripts/run_experiments.py \
 	--readme data/healthcare/healthcare_README.md \
 	--output-dir outputs/hf_local_no4bit \
 	--llm-backend hf-local \
-	--model-id Qwen/Qwen3.5-9B \
+	--model-id Qwen/Qwen3.5-4B \
 	--no-4bit
 ```
 
@@ -197,12 +226,13 @@ scancel <job_id>
 Verify script syntax:
 
 ```bash
-bash -n slurm/warm_cache_policy_kg.slurm
-bash -n slurm/qwen_smoke_debug.slurm
-bash -n slurm/run_all_policy_kg.slurm
+bash -n slurm/policy_warm_cache.slurm
+bash -n slurm/policy_qwen_smoke_debug.slurm
+bash -n slurm/policy_run_all.slurm
+bash -n slurm/policy_qwen_smoke_akya.slurm
 ```
 
-Verify policy/readme paths used by `run_all_policy_kg.slurm`:
+Verify policy/readme paths used by `policy_run_all.slurm`:
 
 ```bash
 ls -l data/healthcare/healthcare.abac data/healthcare/healthcare_README.md
@@ -219,24 +249,32 @@ nvidia-smi -L
 Small smoke profile:
 
 ```bash
-sbatch --export=ALL,HF_TOKEN=${HF_TOKEN},MODEL_ID=Qwen/Qwen3.5-9B,MAX_TOKENS=64 slurm/warm_cache_policy_kg.slurm
+sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_warm_cache_%j.out \
+	-e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_warm_cache_%j.err \
+	--export=ALL,HF_TOKEN=${HF_TOKEN},MODEL_ID=Qwen/Qwen3.5-4B,MAX_TOKENS=64 \
+	slurm/policy_warm_cache.slurm
 ```
 
 Standard full run:
 
 ```bash
-sbatch --export=ALL,HF_TOKEN=${HF_TOKEN},MODEL_ID=Qwen/Qwen3.5-9B,TRUST_REMOTE_CODE=1,MAX_PHASE1=400,MAX_PHASE2=120,TEMP=0.1,TOP_P=0.9,MAX_TOKENS=384 slurm/run_all_policy_kg.slurm
+sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_run_all_%j.out \
+	-e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_run_all_%j.err \
+	--export=ALL,HF_TOKEN=${HF_TOKEN},MODEL_ID=Qwen/Qwen3.5-4B,TRUST_REMOTE_CODE=1,MAX_PHASE1=400,MAX_PHASE2=120,TEMP=0.1,TOP_P=0.9,MAX_TOKENS=384 \
+	slurm/policy_run_all.slurm
 ```
 
 Conservative memory/token profile:
 
 ```bash
-sbatch --export=ALL,HF_TOKEN=${HF_TOKEN},MODEL_ID=Qwen/Qwen2.5-7B-Instruct,TRUST_REMOTE_CODE=0,MAX_SMOKE_TOKENS=64,MAX_PHASE1=250,MAX_PHASE2=80,MAX_TOKENS=256 slurm/run_all_policy_kg.slurm
+sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_run_all_%j.out \
+        -e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_run_all_%j.err \
+		--export=ALL,HF_TOKEN=${HF_TOKEN},MODEL_ID=Qwen/Qwen2.5-7B-Instruct,TRUST_REMOTE_CODE=0,MAX_SMOKE_TOKENS=64,MAX_PHASE1=250,MAX_PHASE2=80,MAX_TOKENS=256 slurm/policy_run_all.slurm
 ```
 
 ```bash
-sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_qwen_smoke_akya_%j.out \
-        -e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_qwen_smoke_akya_%j.err \
-        slurm/qwen_smoke_akya.slurm
+sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_qwen_smoke_akya_%j.out \
+	-e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_policy_qwen_smoke_akya_%j.err \
+	slurm/policy_qwen_smoke_akya.slurm
 		
 ```

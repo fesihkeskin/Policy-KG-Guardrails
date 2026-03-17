@@ -1,15 +1,15 @@
 #!/bin/bash
-#SBATCH --partition=debug
+#SBATCH -p akya-cuda
 #SBATCH -A fekeskin
-#SBATCH -J policykg-warm-cache
+#SBATCH -J policykg-run-all
 #SBATCH -N 1
 #SBATCH -n 1
-#SBATCH --cpus-per-task=20
-#SBATCH --mem=48G
+#SBATCH --cpus-per-task=10
+#SBATCH --mem=96G
 #SBATCH --gres=gpu:1
-#SBATCH --time=00:30:00
-#SBATCH -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/policykg-warm-cache_%j.out
-#SBATCH -e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/policykg-warm-cache_%j.err
+#SBATCH --time=24:00:00
+#SBATCH -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/policy_run_all_%j.out
+#SBATCH -e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/policy_run_all_%j.err
 
 set -euo pipefail
 
@@ -57,27 +57,49 @@ export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
 export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 export MKL_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 
-# Set to your preferred Qwen model id before sbatch or edit here.
-# Example candidates:
-# - Qwen/Qwen2.5-7B-Instruct
-# - Qwen/Qwen2.5-3B-Instruct
-# - Qwen/Qwen3.5-9B
-export MODEL_ID="${MODEL_ID:-Qwen/Qwen3.5-9B}"
-export MAX_TOKENS="${MAX_TOKENS:-96}"
-export DATE_TAG="$(date +%Y%m%d_%H%M)"
-export OUTPUT_FILE="${PROJECT_DIR}/outputs/qwen_smoke_warm_cache_${DATE_TAG}_${SLURM_JOB_ID:-manual}.jsonl"
+# Qwen 3.5 4B default -- fits comfortably on 16 GB VRAM in 4-bit quantisation.
+export MODEL_ID="${MODEL_ID:-Qwen/Qwen3.5-4B}"
+export MAX_SMOKE_TOKENS="${MAX_SMOKE_TOKENS:-96}"
+export MAX_PHASE1="${MAX_PHASE1:-400}"
+export MAX_PHASE2="${MAX_PHASE2:-120}"
+export TEMP="${TEMP:-0.1}"
+export TOP_P="${TOP_P:-0.9}"
+export MAX_TOKENS="${MAX_TOKENS:-384}"
+export TRUST_REMOTE_CODE="${TRUST_REMOTE_CODE:-1}"
+export POLICY_FILE="${POLICY_FILE:-examples/healthcare.abac}"
+export README_FILE="${README_FILE:-examples/healthcare_README.md}"
 
-mkdir -p "${PROJECT_DIR}/logs" "${HF_HOME}" "${HF_DATASETS_CACHE}" "${PROJECT_DIR}/outputs"
+# Fallback for repos/branches where healthcare assets live under data/healthcare.
+if [[ "${POLICY_FILE}" == "examples/healthcare.abac" ]] && [[ ! -f "${PROJECT_DIR}/${POLICY_FILE}" ]] && [[ -f "${PROJECT_DIR}/data/healthcare/healthcare.abac" ]]; then
+  POLICY_FILE="data/healthcare/healthcare.abac"
+  echo "Info: POLICY_FILE fallback applied -> ${POLICY_FILE}"
+fi
+
+if [[ "${README_FILE}" == "examples/healthcare_README.md" ]] && [[ ! -f "${PROJECT_DIR}/${README_FILE}" ]] && [[ -f "${PROJECT_DIR}/data/healthcare/healthcare_README.md" ]]; then
+  README_FILE="data/healthcare/healthcare_README.md"
+  echo "Info: README_FILE fallback applied -> ${README_FILE}"
+fi
+
+DATE_TAG=$(date +%Y%m%d_%H%M)
+OUT_DIR="${PROJECT_DIR}/outputs/${DATE_TAG}"
+mkdir -p "${PROJECT_DIR}/logs" "${HF_HOME}" "${HF_DATASETS_CACHE}" "${OUT_DIR}"
 
 echo "Project Dir: ${PROJECT_DIR}"
 echo "HF Cache: ${HF_HOME}"
-echo "Output File: ${OUTPUT_FILE}"
+echo "Output Dir: ${OUT_DIR}"
 echo "Model ID: ${MODEL_ID}"
+echo "Policy File: ${POLICY_FILE}"
+echo "README File: ${README_FILE}"
+echo "Phase1 Limit: ${MAX_PHASE1}"
+echo "Phase2 Limit: ${MAX_PHASE2}"
+echo "Temperature: ${TEMP}"
+echo "Top-p: ${TOP_P}"
 echo "Max Tokens: ${MAX_TOKENS}"
+echo "Trust Remote Code: ${TRUST_REMOTE_CODE}"
 
 if [[ "${MODEL_ID}" == "Qwen/Qwen3.5-7B-Instruct" ]]; then
   echo "Error: MODEL_ID=${MODEL_ID} is not available on Hugging Face (404)."
-  echo "Use a valid model id, e.g. Qwen/Qwen3.5-9B or Qwen/Qwen2.5-7B-Instruct."
+  echo "Use a valid model id, e.g. Qwen/Qwen3.5-4B (default), Qwen/Qwen3.5-9B, or Qwen/Qwen2.5-7B-Instruct."
   exit 2
 fi
 
@@ -115,6 +137,26 @@ if [[ ! -f "${PROJECT_DIR}/scripts/qwen_smoke_test.py" ]]; then
   exit 1
 fi
 
+if [[ ! -f "${PROJECT_DIR}/scripts/run_experiments.py" ]]; then
+  echo "Error: Missing script: ${PROJECT_DIR}/scripts/run_experiments.py"
+  exit 1
+fi
+
+if [[ ! -f "${PROJECT_DIR}/scripts/check_results.py" ]]; then
+  echo "Error: Missing script: ${PROJECT_DIR}/scripts/check_results.py"
+  exit 1
+fi
+
+if [[ ! -f "${PROJECT_DIR}/${POLICY_FILE}" ]]; then
+  echo "Error: Policy file not found: ${PROJECT_DIR}/${POLICY_FILE}"
+  exit 1
+fi
+
+if [[ ! -f "${PROJECT_DIR}/${README_FILE}" ]]; then
+  echo "Error: README file not found: ${PROJECT_DIR}/${README_FILE}"
+  exit 1
+fi
+
 # -------------------------
 # Conda
 # -------------------------
@@ -122,14 +164,11 @@ eval "$(${CONDA_ROOT:-/arf/home/${USER}/miniconda3}/bin/conda shell.bash hook)"
 conda activate "${CONDA_ENV:-pytorchgpu_env}"
 
 cd "${PROJECT_DIR}"
-
-# Install project + llm deps in current env (idempotent)
 python -m pip install -e .[dev,llm]
 
 echo "Python (post-conda): $(which python)"
 python --version || true
 
-# Optional gated access
 if [[ -n "${HF_TOKEN:-}" ]]; then
   export HUGGINGFACE_HUB_TOKEN="${HF_TOKEN}"
   echo "HF token detected and exported."
@@ -140,19 +179,42 @@ fi
 echo "Visible CUDA devices: ${CUDA_VISIBLE_DEVICES:-N/A}"
 nvidia-smi -L || true
 
-# Download model weights and verify generation works
+TRC_ARG=()
+if [[ "${TRUST_REMOTE_CODE}" == "1" ]]; then
+  TRC_ARG+=(--trust-remote-code)
+fi
+
+# -------------------------
+# 0) Qwen smoke test
+# -------------------------
 python scripts/qwen_smoke_test.py \
   --model-id "${MODEL_ID}" \
-  --output "${OUTPUT_FILE}" \
-  --max-tokens "${MAX_TOKENS}"
+  --output "${OUT_DIR}/qwen_smoke.jsonl" \
+  --max-tokens "${MAX_SMOKE_TOKENS}" \
+  --temperature "${TEMP}" \
+  --top-p "${TOP_P}" \
+  "${TRC_ARG[@]}"
 
-echo "Warm-cache complete."
-echo "Results saved at: ${OUTPUT_FILE}"
+# -------------------------
+# 1) Main experiments
+# -------------------------
+python scripts/run_experiments.py \
+  --policy "${POLICY_FILE}" \
+  --readme "${README_FILE}" \
+  --output-dir "${OUT_DIR}" \
+  --llm-backend hf-local \
+  --model-id "${MODEL_ID}" \
+  --max-phase1 "${MAX_PHASE1}" \
+  --max-phase2 "${MAX_PHASE2}" \
+  --temperature "${TEMP}" \
+  --top-p "${TOP_P}" \
+  --max-tokens "${MAX_TOKENS}" \
+  "${TRC_ARG[@]}"
+
+# -------------------------
+# 2) Verify outputs
+# -------------------------
+python scripts/check_results.py --output-dir "${OUT_DIR}" --min-lines 1
+
+echo "All done. Output dir: ${OUT_DIR}"
 echo "Job Finished: $(date)"
-
-# usage for qwen 3.5 smoke test with policy-kg guardrails:
-# sbatch --export=MODEL_ID=Qwen/Qwen3.5-9B,MAX_TOKENS=128,TRUST_REMOTE_CODE=1 slurm/warm_cache_policy_kg.slurm
-
-# sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_warm_cache_policy_kg_%j.out \
-#         -e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/$(date +%Y%m%d_%H%M)_warm_cache_policy_kg_%j.err \
-#         slurm/warm_cache_policy_kg.slurm

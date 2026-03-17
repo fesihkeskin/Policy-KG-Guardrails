@@ -12,6 +12,7 @@ __pycache__/
 # Ignore specific Jupyter Notebook
 Qwen3_5_9B.ipynb
 
+logs
 # any .mat, .png  and .log files in any subdirectory is ignored
 **/*.mat
 **/*.npy
