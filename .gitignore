@@ -17,6 +17,8 @@ logs
 **/*.mat
 **/*.npy
 **/*.log
+**/*.err
+**/*.out
 
 # Ignore the push_to_github.sh script
 scripts/push_to_github.sh
