@@ -1,15 +1,15 @@
 #!/bin/bash
-#SBATCH -p akya-cuda
+#SBATCH -p barbun-cuda
 #SBATCH -A fekeskin
 #SBATCH -J policykg-qwen-smoke-akya
 #SBATCH -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/policy_qwen_smoke_akya_%j.out
 #SBATCH -e /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/policy_qwen_smoke_akya_%j.err
 #SBATCH -N 1
 #SBATCH -n 1
-#SBATCH --cpus-per-task=10
+#SBATCH --cpus-per-task=20
 #SBATCH --mem=32G
 #SBATCH --gres=gpu:1
-#SBATCH --time=00:10:00
+#SBATCH --time=00:30:00
 
 set -euo pipefail
 

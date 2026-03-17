@@ -53,6 +53,26 @@ python3 scripts/run_experiments.py \
   --trust-remote-code
 ```
 
+All-in-one local pipeline (no SLURM):
+
+```bash
+python3 scripts/run_local_pipeline.py \
+  --llm-backend heuristic \
+  --policy examples/healthcare.abac \
+  --readme examples/healthcare_README.md
+```
+
+HF local all-in-one pipeline:
+
+```bash
+python3 scripts/run_local_pipeline.py \
+  --llm-backend hf-local \
+  --model-id Qwen/Qwen3.5-4B \
+  --trust-remote-code \
+  --policy examples/healthcare.abac \
+  --readme examples/healthcare_README.md
+```
+
 ## TRUBA / SLURM
 
 SLURM templates are in `slurm/`:

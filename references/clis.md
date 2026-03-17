@@ -17,6 +17,13 @@ Optional for gated Hugging Face models:
 export HF_TOKEN=hf_xxx
 ```
 
+Local cache placement (optional, useful on small home directories):
+
+```bash
+export HF_HOME=$PWD/.hf_cache
+export HF_DATASETS_CACHE=$HF_HOME/datasets
+```
+
 ## 2) Quick SLURM submissions
 
 ### 2.1 Warm cache only
@@ -125,6 +132,13 @@ sbatch -o /arf/scratch/fekeskin/Policy-KG-Guardrails/logs/${TS}_policy_run_all_%
 
 ## 4) Local (non-SLURM) script runs
 
+These are the complete local entrypoints in this repo:
+
+- `scripts/qwen_smoke_test.py`
+- `scripts/run_experiments.py`
+- `scripts/check_results.py`
+- `scripts/run_local_pipeline.py` (all-in-one local orchestrator)
+
 ### 4.1 `scripts/qwen_smoke_test.py`
 
 Minimal:
@@ -204,6 +218,65 @@ Stricter check:
 
 ```bash
 python scripts/check_results.py --output-dir outputs/hf_local_run --min-lines 5
+```
+
+### 4.4 `scripts/run_local_pipeline.py` (all-in-one local run)
+
+Heuristic-only full local run (no model download):
+
+```bash
+python scripts/run_local_pipeline.py \
+	--llm-backend heuristic \
+	--policy examples/healthcare.abac \
+	--readme examples/healthcare_README.md
+```
+
+HF local full run with smoke + experiments + checks:
+
+```bash
+python scripts/run_local_pipeline.py \
+	--llm-backend hf-local \
+	--model-id Qwen/Qwen3.5-4B \
+	--trust-remote-code \
+	--policy examples/healthcare.abac \
+	--readme examples/healthcare_README.md
+```
+
+HF local run without smoke phase:
+
+```bash
+python scripts/run_local_pipeline.py \
+	--llm-backend hf-local \
+	--model-id Qwen/Qwen3.5-4B \
+	--no-run-smoke
+```
+
+HF local run in FP16 (no 4-bit quantization):
+
+```bash
+python scripts/run_local_pipeline.py \
+	--llm-backend hf-local \
+	--model-id Qwen/Qwen3.5-4B \
+	--no-4bit \
+	--trust-remote-code
+```
+
+Use a custom output directory and stricter artifact validation:
+
+```bash
+python scripts/run_local_pipeline.py \
+	--llm-backend heuristic \
+	--output-dir outputs/local_custom \
+	--check-results \
+	--min-lines 5
+```
+
+### 4.5 Direct module invocation (equivalent local style)
+
+```bash
+python -m scripts.qwen_smoke_test --model-id Qwen/Qwen3.5-4B --output outputs/qwen_smoke_module.jsonl
+python -m scripts.run_experiments --policy examples/healthcare.abac --readme examples/healthcare_README.md --output-dir outputs/module_run
+python -m scripts.check_results --output-dir outputs/module_run --min-lines 1
 ```
 
 ## 5) Helpful monitoring commands
