@@ -9,7 +9,7 @@ from .types import Decision, ExplanationClaim, ModelDraft
 
 def _to_decision(value: str | None) -> Decision:
     if value is None:
-        return Decision.DENY
+        return Decision.INSUFFICIENT
     normalized = value.strip().lower()
     if normalized == "permit":
         return Decision.PERMIT
@@ -17,7 +17,7 @@ def _to_decision(value: str | None) -> Decision:
         return Decision.DENY
     if normalized in {"insufficientpolicyevidence", "insufficient_policy_evidence", "insufficient"}:
         return Decision.INSUFFICIENT
-    return Decision.DENY
+    return Decision.INSUFFICIENT
 
 
 def _parse_list_expr(value: str) -> list[str]:

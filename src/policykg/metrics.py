@@ -42,6 +42,8 @@ def score_run(predictions: list[Any], oracle_outputs: list[Any] | None = None) -
     false_permit = 0
     false_deny = 0
     abstain = 0
+    positives = 0
+    negatives = 0
 
     claim_alignment_scores: list[float] = []
     rule_precision_scores: list[float] = []
@@ -58,11 +60,17 @@ def score_run(predictions: list[Any], oracle_outputs: list[Any] | None = None) -
         pred = response.decision
         oracle = oracle_decision
 
+        if oracle == Decision.PERMIT:
+            positives += 1
+        else:
+            negatives += 1
+
         if pred == oracle:
             correct += 1
         if pred == Decision.PERMIT and oracle != Decision.PERMIT:
             false_permit += 1
-        if pred == Decision.DENY and oracle == Decision.PERMIT:
+        # Any non-permit prediction on a permit oracle is a miss for permit class.
+        if pred != Decision.PERMIT and oracle == Decision.PERMIT:
             false_deny += 1
         if pred == Decision.INSUFFICIENT:
             abstain += 1
@@ -80,7 +88,7 @@ def score_run(predictions: list[Any], oracle_outputs: list[Any] | None = None) -
                     if token in set(response.decisive_rules):
                         rule_supported += 1
         if rule_mentions == 0:
-            rule_precision_scores.append(1.0)
+            rule_precision_scores.append(0.0)
         else:
             rule_precision_scores.append(safe_div(rule_supported, rule_mentions))
 
@@ -92,11 +100,14 @@ def score_run(predictions: list[Any], oracle_outputs: list[Any] | None = None) -
                 safe_div(len(set(supported_attrs).intersection(set(mentioned_attrs))), len(set(mentioned_attrs)))
             )
         else:
-            attr_precision_scores.append(1.0)
+            attr_precision_scores.append(0.0)
 
-        citation_total = max(1, len(response.citations))
+        citation_total = len(response.citations)
         citation_correct = sum(1 for cite in response.citations if cite in set(response.evidence_subgraphs))
-        citation_correct_scores.append(safe_div(citation_correct, citation_total))
+        if citation_total == 0:
+            citation_correct_scores.append(0.0)
+        else:
+            citation_correct_scores.append(safe_div(citation_correct, citation_total))
 
         cited_in_aligned = set()
         for claim in response.claims:
@@ -107,7 +118,7 @@ def score_run(predictions: list[Any], oracle_outputs: list[Any] | None = None) -
                 safe_div(len(set(response.citations).intersection(cited_in_aligned)), len(set(response.citations)))
             )
         else:
-            citation_faith_scores.append(1.0)
+            citation_faith_scores.append(0.0)
 
         unsupported_claim_scores.append(safe_div(response.unsupported_claim_count, total_claims))
 
@@ -117,8 +128,9 @@ def score_run(predictions: list[Any], oracle_outputs: list[Any] | None = None) -
             cf_changes.append(float(metadata.get("counterfactual_attr_changes", 0)))
 
     acc = safe_div(correct, total)
-    fpr = safe_div(false_permit, total)
-    fnr = safe_div(false_deny, total)
+    # Class-conditional rates.
+    fpr = safe_div(false_permit, negatives)
+    fnr = safe_div(false_deny, positives)
     abst = safe_div(abstain, total)
     gf = mean(claim_alignment_scores)
     rule_p = mean(rule_precision_scores)

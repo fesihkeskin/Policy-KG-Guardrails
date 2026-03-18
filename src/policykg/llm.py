@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 from dataclasses import dataclass, field
 from typing import Any
 from typing import Protocol
@@ -205,29 +206,30 @@ class HFLocalCausalLMClient:
             {"role": "user", "content": user_prompt},
         ]
 
+        def _apply_template(fn: Any, *, tokenize: bool, return_tensors: str | None = None) -> Any:
+            kwargs: dict[str, Any] = {"add_generation_prompt": True, "tokenize": tokenize}
+            if return_tensors is not None:
+                kwargs["return_tensors"] = return_tensors
+            # Qwen 3.x tokenizers/processors can expose this flag.
+            try:
+                sig = inspect.signature(fn)
+                if "enable_thinking" in sig.parameters:
+                    kwargs["enable_thinking"] = False
+            except (ValueError, TypeError):
+                pass
+            return fn(messages, **kwargs)
+
         if self._backend == "image_text" and self._processor is not None:
             if hasattr(self._processor, "apply_chat_template"):
-                chat_text = self._processor.apply_chat_template(
-                    messages,
-                    add_generation_prompt=True,
-                    tokenize=False,
-                )
+                chat_text = _apply_template(self._processor.apply_chat_template, tokenize=False)
             elif hasattr(self._tokenizer, "apply_chat_template"):
-                chat_text = self._tokenizer.apply_chat_template(
-                    messages,
-                    add_generation_prompt=True,
-                    tokenize=False,
-                )
+                chat_text = _apply_template(self._tokenizer.apply_chat_template, tokenize=False)
             else:
                 chat_text = f"System: {system_prompt}\nUser: {user_prompt}\nAssistant:"
             return self._processor(text=[chat_text], return_tensors="pt")
 
         if hasattr(self._tokenizer, "apply_chat_template"):
-            templated = self._tokenizer.apply_chat_template(
-                messages,
-                add_generation_prompt=True,
-                return_tensors="pt",
-            )
+            templated = _apply_template(self._tokenizer.apply_chat_template, tokenize=True, return_tensors="pt")
             # Newer tokenizer versions may return BatchEncoding instead of Tensor.
             if hasattr(templated, "items"):
                 return dict(templated)
